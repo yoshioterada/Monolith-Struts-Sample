@@ -37,7 +37,7 @@ public class ProductDaoImpl extends AbstractDao implements ProductDao {
     ResultSet rs = null;
     List<Product> products = new ArrayList<Product>();
     try {
-      StringBuffer sql = new StringBuffer();
+      StringBuilder sql = new StringBuilder();
       sql.append("SELECT id, name, brand, description, category_id, sku, status, created_at, updated_at FROM products WHERE 1=1");
       if (keyword != null && keyword.trim().length() > 0) {
         sql.append(" AND name LIKE ?");
