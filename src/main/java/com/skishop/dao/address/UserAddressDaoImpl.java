@@ -48,50 +48,34 @@ public class UserAddressDaoImpl extends AbstractDao implements UserAddressDao {
 
   public void save(Address address) {
     Connection con = null;
-    PreparedStatement resetPs = null;
-    PreparedStatement insertPs = null;
+    PreparedStatement ps = null;
     try {
       con = getConnection();
       if (address.isDefault()) {
-        resetPs = con.prepareStatement("UPDATE user_addresses SET is_default = FALSE WHERE user_id = ?");
-        resetPs.setString(1, address.getUserId());
-        resetPs.executeUpdate();
+        ps = con.prepareStatement("UPDATE user_addresses SET is_default = FALSE WHERE user_id = ?");
+        ps.setString(1, address.getUserId());
+        ps.executeUpdate();
+        closeQuietly(null, ps, null);
+        ps = null;
       }
-      insertPs = con.prepareStatement("INSERT INTO user_addresses(id, user_id, label, recipient_name, postal_code, prefecture, address1, address2, phone, is_default, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
-      insertPs.setString(1, address.getId());
-      insertPs.setString(2, address.getUserId());
-      insertPs.setString(3, address.getLabel());
-      insertPs.setString(4, address.getRecipientName());
-      insertPs.setString(5, address.getPostalCode());
-      insertPs.setString(6, address.getPrefecture());
-      insertPs.setString(7, address.getAddress1());
-      insertPs.setString(8, address.getAddress2());
-      insertPs.setString(9, address.getPhone());
-      insertPs.setBoolean(10, address.isDefault());
-      insertPs.setTimestamp(11, toTimestamp(address.getCreatedAt()));
-      insertPs.setTimestamp(12, toTimestamp(address.getUpdatedAt()));
-      insertPs.executeUpdate();
+      ps = con.prepareStatement("INSERT INTO user_addresses(id, user_id, label, recipient_name, postal_code, prefecture, address1, address2, phone, is_default, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+      ps.setString(1, address.getId());
+      ps.setString(2, address.getUserId());
+      ps.setString(3, address.getLabel());
+      ps.setString(4, address.getRecipientName());
+      ps.setString(5, address.getPostalCode());
+      ps.setString(6, address.getPrefecture());
+      ps.setString(7, address.getAddress1());
+      ps.setString(8, address.getAddress2());
+      ps.setString(9, address.getPhone());
+      ps.setBoolean(10, address.isDefault());
+      ps.setTimestamp(11, toTimestamp(address.getCreatedAt()));
+      ps.setTimestamp(12, toTimestamp(address.getUpdatedAt()));
+      ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
     } finally {
-      try {
-        if (resetPs != null) {
-          resetPs.close();
-        }
-      } catch (Exception e) {
-      }
-      try {
-        if (insertPs != null) {
-          insertPs.close();
-        }
-      } catch (Exception e) {
-      }
-      try {
-        if (con != null) {
-          con.close();
-        }
-      } catch (Exception e) {
-      }
+      closeQuietly(null, ps, con);
     }
   }
 
