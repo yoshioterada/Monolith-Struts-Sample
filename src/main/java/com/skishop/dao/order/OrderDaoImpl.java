@@ -104,6 +104,70 @@ public class OrderDaoImpl extends AbstractDao implements OrderDao {
     }
   }
 
+  public List<OrderItem> listItemsByOrderId(String orderId) {
+    Connection con = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    List<OrderItem> items = new ArrayList<OrderItem>();
+    try {
+      con = getConnection();
+      ps = con.prepareStatement("SELECT id, order_id, product_id, product_name, sku, unit_price, quantity, subtotal FROM order_items WHERE order_id = ? ORDER BY id");
+      ps.setString(1, orderId);
+      rs = ps.executeQuery();
+      while (rs.next()) {
+        OrderItem item = new OrderItem();
+        item.setId(rs.getString("id"));
+        item.setOrderId(rs.getString("order_id"));
+        item.setProductId(rs.getString("product_id"));
+        item.setProductName(rs.getString("product_name"));
+        item.setSku(rs.getString("sku"));
+        item.setUnitPrice(rs.getBigDecimal("unit_price"));
+        item.setQuantity(rs.getInt("quantity"));
+        item.setSubtotal(rs.getBigDecimal("subtotal"));
+        items.add(item);
+      }
+      return items;
+    } catch (SQLException e) {
+      throw new DaoException(e);
+    } finally {
+      closeQuietly(rs, ps, con);
+    }
+  }
+
+  public void updateStatus(String orderId, String status) {
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = getConnection();
+      ps = con.prepareStatement("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?");
+      ps.setString(1, status);
+      ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+      ps.setString(3, orderId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new DaoException(e);
+    } finally {
+      closeQuietly(null, ps, con);
+    }
+  }
+
+  public void updatePaymentStatus(String orderId, String paymentStatus) {
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = getConnection();
+      ps = con.prepareStatement("UPDATE orders SET payment_status = ?, updated_at = ? WHERE id = ?");
+      ps.setString(1, paymentStatus);
+      ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+      ps.setString(3, orderId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new DaoException(e);
+    } finally {
+      closeQuietly(null, ps, con);
+    }
+  }
+
   private Order mapOrder(ResultSet rs) throws SQLException {
     Order order = new Order();
     order.setId(rs.getString("id"));

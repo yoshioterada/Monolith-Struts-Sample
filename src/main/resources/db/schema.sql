@@ -75,6 +75,19 @@ CREATE TABLE cart_items (
 
 CREATE UNIQUE INDEX idx_cart_items_cart_product ON cart_items(cart_id, product_id);
 
+CREATE TABLE payments (
+  id VARCHAR(36) PRIMARY KEY,
+  order_id VARCHAR(36),
+  cart_id VARCHAR(36),
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(10) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  payment_intent_id VARCHAR(100),
+  created_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_payments_order ON payments(order_id);
+
 CREATE TABLE orders (
   id VARCHAR(36) PRIMARY KEY,
   order_number VARCHAR(50) NOT NULL,
@@ -128,6 +141,20 @@ CREATE TABLE returns (
   status VARCHAR(20)
 );
 
+CREATE TABLE order_shipping (
+  id VARCHAR(36) PRIMARY KEY,
+  order_id VARCHAR(36) NOT NULL,
+  recipient_name VARCHAR(100) NOT NULL,
+  postal_code VARCHAR(20) NOT NULL,
+  prefecture VARCHAR(50) NOT NULL,
+  address1 VARCHAR(200) NOT NULL,
+  address2 VARCHAR(200),
+  phone VARCHAR(20),
+  shipping_method_code VARCHAR(20),
+  shipping_fee DECIMAL(10,2) NOT NULL,
+  requested_delivery_date TIMESTAMP
+);
+
 CREATE TABLE point_accounts (
   id VARCHAR(36) PRIMARY KEY,
   user_id VARCHAR(36) NOT NULL,
@@ -175,6 +202,18 @@ CREATE TABLE coupons (
 );
 
 CREATE UNIQUE INDEX idx_coupons_code ON coupons(code);
+
+CREATE TABLE coupon_usage (
+  id VARCHAR(36) PRIMARY KEY,
+  coupon_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+  order_id VARCHAR(36) NOT NULL,
+  discount_applied DECIMAL(10,2) NOT NULL,
+  used_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_coupon_usage_coupon ON coupon_usage(coupon_id);
+CREATE INDEX idx_coupon_usage_order ON coupon_usage(order_id);
 
 CREATE TABLE user_addresses (
   id VARCHAR(36) PRIMARY KEY,

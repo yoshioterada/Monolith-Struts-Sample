@@ -14,4 +14,8 @@ public interface CartDao {
   List<CartItem> findItemsByCartId(String cartId);
 
   void updateItemQuantity(String itemId, int quantity);
+
+  void deleteItemsByCartId(String cartId);
+
+  void updateStatus(String cartId, String status);
 }

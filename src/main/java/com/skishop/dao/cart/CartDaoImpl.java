@@ -120,6 +120,37 @@ public class CartDaoImpl extends AbstractDao implements CartDao {
     }
   }
 
+  public void deleteItemsByCartId(String cartId) {
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = getConnection();
+      ps = con.prepareStatement("DELETE FROM cart_items WHERE cart_id = ?");
+      ps.setString(1, cartId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new DaoException(e);
+    } finally {
+      closeQuietly(null, ps, con);
+    }
+  }
+
+  public void updateStatus(String cartId, String status) {
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = getConnection();
+      ps = con.prepareStatement("UPDATE carts SET status = ? WHERE id = ?");
+      ps.setString(1, status);
+      ps.setString(2, cartId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new DaoException(e);
+    } finally {
+      closeQuietly(null, ps, con);
+    }
+  }
+
   private Timestamp toTimestamp(java.util.Date date) {
     if (date == null) {
       return null;

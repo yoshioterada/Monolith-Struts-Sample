@@ -12,4 +12,10 @@ public interface OrderDao {
   void insertOrder(Order order);
 
   void insertOrderItem(OrderItem item);
+
+  List<OrderItem> listItemsByOrderId(String orderId);
+
+  void updateStatus(String orderId, String status);
+
+  void updatePaymentStatus(String orderId, String paymentStatus);
 }

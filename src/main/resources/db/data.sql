@@ -23,6 +23,9 @@ INSERT INTO carts(id, user_id, session_id, status, expires_at) VALUES
 INSERT INTO cart_items(id, cart_id, product_id, quantity, unit_price) VALUES
   ('cart-item-1', 'cart-1', 'P001', 1, 50000);
 
+INSERT INTO payments(id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at) VALUES
+  ('pay-1', 'order-1', 'cart-1', 55800, 'JPY', 'AUTHORIZED', 'PAY-0001', CURRENT_TIMESTAMP);
+
 INSERT INTO orders(id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at) VALUES
   ('order-1', 'ORD-0001', 'u-1', 'CREATED', 'AUTHORIZED', 50000, 5000, 800, 0, 55800, NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
@@ -34,6 +37,9 @@ INSERT INTO shipments(id, order_id, carrier, tracking_number, status, shipped_at
 
 INSERT INTO returns(id, order_id, order_item_id, reason, quantity, refund_amount, status) VALUES
   ('return-1', 'order-1', 'order-item-1', 'size', 1, 50000, 'REQUESTED');
+
+INSERT INTO order_shipping(id, order_id, recipient_name, postal_code, prefecture, address1, address2, phone, shipping_method_code, shipping_fee, requested_delivery_date) VALUES
+  ('os-1', 'order-1', '山田 太郎', '160-0022', '東京都', '新宿区新宿1-1-1', 'マンション101', '0312345678', 'STANDARD', 800, NULL);
 
 INSERT INTO point_accounts(id, user_id, balance, lifetime_earned, lifetime_redeemed) VALUES
   ('pa-1', 'u-1', 100, 100, 0);
