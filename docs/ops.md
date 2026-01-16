@@ -78,6 +78,28 @@ docker compose exec db pg_dump -Fc -U skishop skishop > skishop-YYYYMMDD.dump
 docker compose exec -T db pg_restore --clean --if-exists -U skishop -d skishop < skishop-YYYYMMDD.dump
 ```
 
+## Runbook (Operations)
+- **Deploy verification**: after Tomcat start (typically within 1-2 minutes, or when
+  `Server startup in <ms>` appears), confirm `catalina.out` has no startup errors such as
+  `ClassNotFoundException`, `OutOfMemoryError`, or DB connection failures, then access `/login.do`
+  or `/home.do` to confirm HTTP 200 responses with the expected JSP content (login form or home
+  page) rendered.
+- **Thread dump** (Java 5+ compatible):
+  1. Identify the Tomcat JVM PID (`pgrep -f 'org.apache.catalina.startup.Bootstrap'` preferred;
+     `jps -l` also works when available in your Java install).
+  2. Capture with `jstack <pid>` (preferred). Use `kill -3 <pid>` only if needed; `SIGQUIT` writes
+     a thread dump to `catalina.out` in standard JVMs, so validate the behavior in non-production
+     if your runtime is customized.
+  3. Attach the timestamped dump to incident notes.
+- **Log rotation**:
+  1. Check `log4j.properties` in the deployed app (`WEB-INF/classes/log4j.properties`, or inspect
+     the WAR with `jar tf`/`jar xf`) for the RollingFileAppender configuration (appender name may
+     vary), including the log file path (default `logs/app.log`) and configured
+     `MaxFileSize`/`MaxBackupIndex` values.
+  2. Run `ls -la logs/` to confirm `app.log`, `app.log.1`, ... are present after rotation.
+  3. Use `stat logs/app.log` (or `ls -lh logs/app.log`) to confirm the active log stays below
+     the size threshold.
+
 ## WAR Versioning & Release Notes
 - Version is sourced from `pom.xml` (`<version>`), with `finalName` set to `skishop-monolith`.
 - For versioned artifacts, rename the WAR after build (e.g. `skishop-monolith-1.0.1.war`) or
