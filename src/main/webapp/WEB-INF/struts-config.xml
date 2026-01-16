@@ -198,7 +198,7 @@
             roles="USER,ADMIN"
             scope="request"
             validate="true">
-      <forward name="success" path="/addresses.do"/>
+      <forward name="success" path="/addresses.do" redirect="true"/>
       <forward name="failure" path="account.address_edit"/>
       <forward name="login" path="/login.do"/>
     </action>
