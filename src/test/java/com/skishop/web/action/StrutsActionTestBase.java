@@ -1,6 +1,7 @@
 package com.skishop.web.action;
 
 import com.skishop.common.dao.DataSourceLocator;
+import com.skishop.domain.user.User;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -9,11 +10,14 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.util.logging.Logger;
 import org.h2.jdbcx.JdbcDataSource;
+import org.apache.struts.util.TokenProcessor;
 import servletunit.HttpServletRequestSimulator;
 import servletunit.struts.MockStrutsTestCase;
 
 public abstract class StrutsActionTestBase extends MockStrutsTestCase {
   private static final Logger LOGGER = Logger.getLogger(StrutsActionTestBase.class.getName());
+  private static final String TOKEN_REQUEST_KEY = "org.apache.struts.taglib.html.TOKEN";
+  private static final String TOKEN_SESSION_KEY = "org.apache.struts.action.TOKEN";
   private static JdbcDataSource dataSource;
 
   protected void setUp() throws Exception {
@@ -104,5 +108,22 @@ public abstract class StrutsActionTestBase extends MockStrutsTestCase {
   protected void setPostRequest() {
     HttpServletRequestSimulator request = (HttpServletRequestSimulator) getRequest();
     request.setMethod(HttpServletRequestSimulator.POST);
+    TokenProcessor.getInstance().saveToken(getRequest());
+    String token = (String) getRequest().getSession().getAttribute(TOKEN_SESSION_KEY);
+    if (token != null) {
+      addRequestParameter(TOKEN_REQUEST_KEY, token);
+    }
+  }
+
+  protected void setGetRequest() {
+    HttpServletRequestSimulator request = (HttpServletRequestSimulator) getRequest();
+    request.setMethod(HttpServletRequestSimulator.GET);
+  }
+
+  protected void setLoginUser(String userId, String role) {
+    User user = new User();
+    user.setId(userId);
+    user.setRole(role);
+    getSession().setAttribute("loginUser", user);
   }
 }

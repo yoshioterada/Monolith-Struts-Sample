@@ -23,7 +23,8 @@ public class LoginAction extends Action {
       return mapping.getInputForward();
     }
     LoginForm loginForm = (LoginForm) form;
-    AuthResult result = authService.authenticate(loginForm.getEmail(), loginForm.getPassword());
+    AuthResult result = authService.authenticate(loginForm.getEmail(), loginForm.getPassword(), request.getRemoteAddr(),
+        request.getHeader("User-Agent"));
     if (!result.isSuccess()) {
       ActionMessages errors = new ActionMessages();
       errors.add(ActionMessages.GLOBAL_MESSAGE, new ActionMessage("error.login.failed"));

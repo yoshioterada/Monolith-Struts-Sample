@@ -1,19 +1,21 @@
 package com.skishop.web.action;
 
-import com.skishop.domain.user.User;
+import servletunit.HttpServletResponseSimulator;
 
 public class OrderHistoryActionTest extends StrutsActionTestBase {
   public void testOrderHistoryRequiresLogin() throws Exception {
     setRequestPathInfo("/orders");
+    setGetRequest();
     actionPerform();
-    verifyForward("login");
+    HttpServletResponseSimulator response = (HttpServletResponseSimulator) getResponse();
+    assertEquals(302, response.getStatusCode());
+    assertEquals("/login.do", response.getHeader("Location"));
   }
 
   public void testOrderHistorySuccess() throws Exception {
-    User user = new User();
-    user.setId("u-1");
-    getSession().setAttribute("loginUser", user);
+    setLoginUser("u-1", "USER");
     setRequestPathInfo("/orders");
+    setGetRequest();
     actionPerform();
     verifyInputForward();
     assertNotNull(getRequest().getAttribute("orders"));

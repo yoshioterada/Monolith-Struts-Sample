@@ -2,6 +2,7 @@ package com.skishop.web.action;
 
 public class CouponApplyActionTest extends StrutsActionTestBase {
   public void testCouponApplyValidation() throws Exception {
+    setLoginUser("u-1", "USER");
     setRequestPathInfo("/coupon/apply");
     setPostRequest();
     addRequestParameter("code", "A");
@@ -11,6 +12,7 @@ public class CouponApplyActionTest extends StrutsActionTestBase {
   }
 
   public void testCouponApplyMissingCart() throws Exception {
+    setLoginUser("u-1", "USER");
     setRequestPathInfo("/coupon/apply");
     setPostRequest();
     addRequestParameter("code", "SAVE10");

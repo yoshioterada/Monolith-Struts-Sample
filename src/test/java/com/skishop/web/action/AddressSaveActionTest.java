@@ -10,6 +10,8 @@ public class AddressSaveActionTest extends StrutsActionTestBase {
     addRequestParameter("address1", "1-1");
     addRequestParameter("phone", "0312345678");
     actionPerform();
-    verifyForward("login");
+    servletunit.HttpServletResponseSimulator response = (servletunit.HttpServletResponseSimulator) getResponse();
+    assertEquals(302, response.getStatusCode());
+    assertEquals("/login.do", response.getHeader("Location"));
   }
 }

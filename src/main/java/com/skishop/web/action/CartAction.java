@@ -7,7 +7,6 @@ import com.skishop.service.cart.CartService;
 import com.skishop.web.form.AddCartForm;
 import java.math.BigDecimal;
 import java.util.List;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -29,11 +28,7 @@ public class CartAction extends Action {
       Cart cart = cartService.createCart(user != null ? user.getId() : null, session.getId());
       cartId = cart.getId();
       session.setAttribute("cartId", cartId);
-      Cookie cookie = new Cookie("CART_ID", cartId);
-      cookie.setMaxAge(CART_COOKIE_MAX_AGE);
-      cookie.setSecure(request.isSecure());
-      cookie.setPath(request.getContextPath().length() == 0 ? "/" : request.getContextPath());
-      response.addCookie(cookie);
+      addCartCookie(request, response, cartId);
     }
 
     if ("POST".equalsIgnoreCase(request.getMethod())) {
@@ -49,5 +44,21 @@ public class CartAction extends Action {
     request.setAttribute("cartSubtotal", subtotal);
     request.setAttribute("cartId", cartId);
     return mapping.findForward("success");
+  }
+
+  private void addCartCookie(HttpServletRequest request, HttpServletResponse response, String cartId) {
+    String path = request.getContextPath();
+    if (path == null || path.length() == 0) {
+      path = "/";
+    }
+    StringBuilder header = new StringBuilder();
+    header.append("CART_ID=").append(cartId);
+    header.append("; Max-Age=").append(CART_COOKIE_MAX_AGE);
+    header.append("; Path=").append(path);
+    if (request.isSecure()) {
+      header.append("; Secure");
+    }
+    header.append("; HttpOnly");
+    response.addHeader("Set-Cookie", header.toString());
   }
 }

@@ -2,6 +2,7 @@ package com.skishop.web.action;
 
 public class CheckoutActionTest extends StrutsActionTestBase {
   public void testCheckoutSuccessForward() throws Exception {
+    setLoginUser("u-1", "USER");
     setRequestPathInfo("/checkout");
     setPostRequest();
     addRequestParameter("cartId", "cart-1");

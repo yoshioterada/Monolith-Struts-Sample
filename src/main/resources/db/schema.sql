@@ -17,6 +17,17 @@ CREATE TABLE users (
 
 CREATE UNIQUE INDEX idx_users_email ON users(email);
 
+CREATE TABLE security_logs (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36),
+  event_type VARCHAR(50) NOT NULL,
+  ip_address VARCHAR(50),
+  user_agent VARCHAR(255),
+  details_json VARCHAR(2000)
+);
+
+CREATE INDEX idx_security_logs_user_event ON security_logs(user_id, event_type);
+
 CREATE TABLE categories (
   id VARCHAR(36) PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
