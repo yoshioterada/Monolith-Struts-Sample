@@ -1,13 +1,15 @@
-version: '3.8'
+# version removed (deprecated)
 services:
   app:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
+      # Dockerfile内で ./binaries/jdk-1_5_0_22-linux-amd64.bin をCOPYしローカルJDKを優先利用
       args:
         JDK_LICENSE: accept
         JDK_URL: https://archive.org/download/Java_5_update_22/jdk-1_5_0_22-linux-amd64.bin
-        JDK_SHA256: 2788b0c787cfa8d314e427d59fabf0b64a1c535d0b15a5437f38c0ede7beae4c
+        JDK_SHA256: 5383e5e28872a1c7e75e9df40d931797e8bef1e11d49f662492da2b75f7cc3c0
     container_name: skishop-app-tomcat6
     ports:
       - "8080:8080"
@@ -26,6 +28,7 @@ services:
       - tomcat-logs:/opt/tomcat/logs
   db:
     image: postgres:9.2
+    platform: linux/amd64
     container_name: skishop-db
     environment:
       POSTGRES_DB: skishop

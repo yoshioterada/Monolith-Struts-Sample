@@ -1,0 +1,28 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>strutstestcase</groupId>
+  <artifactId>strutstestcase</artifactId>
+  <version>2.1.4-1.2-2.4</version>
+  <packaging>jar</packaging>
+  <name>Struts Test Case</name>
+  <url>http://strutstestcase.sourceforge.net/</url>
+  <description>StrutsTestCase for JUnit is an extension of the standard JUnit TestCase class that provides facilities for testing code based on the Struts framework</description>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 1.1</name>
+      <url>http://www.apache.org/licenses/LICENSE-1.1</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:cvs:http://strutstestcase.cvs.sourceforge.net/strutstestcase/strutstestcase/</connection>
+    <url>http://strutstestcase.cvs.sourceforge.net/strutstestcase/strutstestcase/</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.4</version>
+    </dependency>
+  </dependencies>
+</project>
