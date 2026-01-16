@@ -9,7 +9,11 @@
       <th>キーワード</th>
       <td><html:text property="keyword" size="20"/></td>
       <th>カテゴリ</th>
-      <td><html:text property="categoryId" size="10"/></td>
+      <td>
+        <html:select property="categoryId">
+          <html:optionsCollection name="categoryOptions" label="label" value="value"/>
+        </html:select>
+      </td>
       <th>並び替え</th>
       <td>
         <html:select property="sort">
@@ -36,7 +40,7 @@
     <tr>
       <th>商品名</th>
       <th>ブランド</th>
-      <th>SKU</th>
+      <th>価格</th>
       <th>カート</th>
     </tr>
     <logic:iterate id="product" name="productList">
@@ -48,7 +52,7 @@
           </html:link>
         </td>
         <td><bean:write name="product" property="brand" filter="true"/></td>
-        <td><bean:write name="product" property="sku" filter="true"/></td>
+        <td><bean:write name="product" property="priceDisplay" filter="true"/></td>
         <td>
           <html:form action="/cart.do" method="post">
             <html:hidden property="productId" value="<%= org.apache.struts.util.ResponseUtils.filter(productId) %>"/>

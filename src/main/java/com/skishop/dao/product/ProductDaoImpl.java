@@ -17,7 +17,8 @@ public class ProductDaoImpl extends AbstractDao implements ProductDao {
     ResultSet rs = null;
     try {
       con = getConnection();
-      ps = con.prepareStatement("SELECT id, name, brand, description, category_id, sku, status, created_at, updated_at FROM products WHERE id = ?");
+        ps = con.prepareStatement("SELECT p.id, p.name, p.brand, p.description, p.category_id, p.sku, p.status, p.created_at, p.updated_at, pr.regular_price, pr.sale_price, pr.currency_code "
+          + "FROM products p LEFT JOIN prices pr ON pr.product_id = p.id WHERE p.id = ?");
       ps.setString(1, id);
       rs = ps.executeQuery();
       if (rs.next()) {
@@ -31,30 +32,50 @@ public class ProductDaoImpl extends AbstractDao implements ProductDao {
     }
   }
 
-  public List<Product> findPaged(String keyword, String categoryId, int offset, int limit) {
+  public List<Product> findPaged(String keyword, String categoryId, String sort, int offset, int limit) {
     Connection con = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
     List<Product> products = new ArrayList<Product>();
     try {
       StringBuilder sql = new StringBuilder();
-      sql.append("SELECT id, name, brand, description, category_id, sku, status, created_at, updated_at FROM products WHERE 1=1");
+        sql.append("SELECT p.id, p.name, p.brand, p.description, p.category_id, p.sku, p.status, p.created_at, p.updated_at, pr.regular_price, pr.sale_price, pr.currency_code "
+          + "FROM products p "
+          + "LEFT JOIN prices pr ON pr.product_id = p.id "
+          + "LEFT JOIN categories c ON c.id = p.category_id "
+          + "WHERE 1=1 AND p.status = 'ACTIVE'");
       if (keyword != null && keyword.trim().length() > 0) {
-        sql.append(" AND name LIKE ?");
+        sql.append(" AND (p.name ILIKE ? OR p.brand ILIKE ? OR p.description ILIKE ?)");
       }
       if (categoryId != null && categoryId.trim().length() > 0) {
-        sql.append(" AND category_id = ?");
+        sql.append(" AND (p.category_id = ? OR c.name ILIKE ?)");
       }
-      sql.append(" ORDER BY name LIMIT ? OFFSET ?");
+      if (sort != null) {
+        if ("priceAsc".equals(sort)) {
+          sql.append(" ORDER BY COALESCE(pr.sale_price, pr.regular_price, 999999999) ASC, p.name");
+        } else if ("priceDesc".equals(sort)) {
+          sql.append(" ORDER BY COALESCE(pr.sale_price, pr.regular_price, 0) DESC, p.name");
+        } else if ("newest".equals(sort)) {
+          sql.append(" ORDER BY p.created_at DESC");
+        } else {
+          sql.append(" ORDER BY p.name");
+        }
+      } else {
+        sql.append(" ORDER BY p.name");
+      }
+      sql.append(" LIMIT ? OFFSET ?");
 
       con = getConnection();
       ps = con.prepareStatement(sql.toString());
       int index = 1;
       if (keyword != null && keyword.trim().length() > 0) {
         ps.setString(index++, "%" + keyword + "%");
+        ps.setString(index++, "%" + keyword + "%");
+        ps.setString(index++, "%" + keyword + "%");
       }
       if (categoryId != null && categoryId.trim().length() > 0) {
         ps.setString(index++, categoryId);
+        ps.setString(index++, "%" + categoryId + "%");
       }
       ps.setInt(index++, limit);
       ps.setInt(index, offset);
@@ -128,6 +149,9 @@ public class ProductDaoImpl extends AbstractDao implements ProductDao {
     product.setStatus(rs.getString("status"));
     product.setCreatedAt(rs.getTimestamp("created_at"));
     product.setUpdatedAt(rs.getTimestamp("updated_at"));
+    try { product.setRegularPrice(rs.getBigDecimal("regular_price")); } catch (SQLException ignore) {}
+    try { product.setSalePrice(rs.getBigDecimal("sale_price")); } catch (SQLException ignore) {}
+    try { product.setCurrencyCode(rs.getString("currency_code")); } catch (SQLException ignore) {}
     return product;
   }
 }

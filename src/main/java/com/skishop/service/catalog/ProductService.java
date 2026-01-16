@@ -19,8 +19,12 @@ public class ProductService {
     return productDao.findById(productId);
   }
 
+  public List<Product> search(String keyword, String categoryId, String sort, int offset, int limit) {
+    return productDao.findPaged(keyword, categoryId, sort, offset, limit);
+  }
+
   public List<Product> search(String keyword, String categoryId, int offset, int limit) {
-    return productDao.findPaged(keyword, categoryId, offset, limit);
+    return productDao.findPaged(keyword, categoryId, null, offset, limit);
   }
 
   public void deactivateProduct(String productId) {

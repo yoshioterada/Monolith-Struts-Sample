@@ -1,6 +1,9 @@
 package com.skishop.domain.product;
 
 import java.util.Date;
+import java.math.BigDecimal;
+import java.util.Locale;
+import java.text.NumberFormat;
 
 public class Product {
   private String id;
@@ -12,6 +15,9 @@ public class Product {
   private String status;
   private Date createdAt;
   private Date updatedAt;
+  private BigDecimal regularPrice;
+  private BigDecimal salePrice;
+  private String currencyCode;
 
   public String getId() {
     return id;
@@ -83,5 +89,46 @@ public class Product {
 
   public void setUpdatedAt(Date updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public BigDecimal getRegularPrice() {
+    return regularPrice;
+  }
+
+  public void setRegularPrice(BigDecimal regularPrice) {
+    this.regularPrice = regularPrice;
+  }
+
+  public BigDecimal getSalePrice() {
+    return salePrice;
+  }
+
+  public void setSalePrice(BigDecimal salePrice) {
+    this.salePrice = salePrice;
+  }
+
+  public String getCurrencyCode() {
+    return currencyCode;
+  }
+
+  public void setCurrencyCode(String currencyCode) {
+    this.currencyCode = currencyCode;
+  }
+
+  public BigDecimal getEffectivePrice() {
+    return salePrice != null ? salePrice : regularPrice;
+  }
+
+  public String getPriceDisplay() {
+    BigDecimal price = getEffectivePrice();
+    if (price == null) {
+      return "-";
+    }
+    try {
+      NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("ja", "JP"));
+      return nf.format(price);
+    } catch (Exception e) {
+      return price.toPlainString();
+    }
   }
 }
