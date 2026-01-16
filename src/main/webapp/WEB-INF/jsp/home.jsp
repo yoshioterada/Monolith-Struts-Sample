@@ -6,7 +6,6 @@
 	<p>最高品質のスキー・スノーボード用品で、あなたの冬のアドベンチャーを始めよう。</p>
 	<div class="hero-actions">
 		<html:link page="/products.do" styleClass="btn">商品を見る</html:link>
-		<html:link page="/support.do" styleClass="btn btn-secondary">AI相談を始める</html:link>
 	</div>
 </div>
 
