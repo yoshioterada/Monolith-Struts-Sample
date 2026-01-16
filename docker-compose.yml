@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: skishop-app-tomcat8
+    container_name: skishop-app-tomcat6
     ports:
       - "8080:8080"
     environment:
@@ -15,25 +15,8 @@ services:
       DB_PASSWORD: skishop
     depends_on:
       - db
-  app-tomcat6:
-    build:
-      context: .
-      dockerfile: Dockerfile.tomcat6
-    container_name: skishop-app-tomcat6
-    profiles:
-      - tomcat6
-    ports:
-      - "8081:8080"
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: skishop
-      DB_USER: skishop
-      DB_PASSWORD: skishop
-    depends_on:
-      - db
   db:
-    image: postgres:12-alpine
+    image: postgres:9.2
     container_name: skishop-db
     environment:
       POSTGRES_DB: skishop

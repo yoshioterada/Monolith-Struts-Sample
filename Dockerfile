@@ -1,8 +1,8 @@
-# Multi-stage build targeting Tomcat 8.5 + JDK8
+# Multi-stage build targeting Tomcat 6.0.53 + JDK6 (Java 5 compatible)
 # Stage 1: Build
-FROM azul/zulu-openjdk:8 as build
+FROM azul/zulu-openjdk:6 as build
 
-ARG MAVEN_VERSION=3.2.5
+ARG MAVEN_VERSION=2.2.1
 ENV MAVEN_HOME=/opt/maven
 ENV PATH=${MAVEN_HOME}/bin:${PATH}
 
@@ -18,20 +18,20 @@ COPY src ./src
 RUN mvn -B -DskipTests package
 
 # Stage 2: Runtime
-FROM azul/zulu-openjdk:8-jre as runtime
+FROM azul/zulu-openjdk:6-jre as runtime
 
 ENV CATALINA_HOME=/opt/tomcat
 ENV PATH=${CATALINA_HOME}/bin:${PATH}
 
-# Tomcat 8.5.x (8.5 LTS) from archive
+# Tomcat 6.0.53 (latest 6.x) from archive
 RUN set -eux; \
-  curl -fsSL https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.98/bin/apache-tomcat-8.5.98.tar.gz \
+  curl -fsSL https://archive.apache.org/dist/tomcat/tomcat-6/v6.0.53/bin/apache-tomcat-6.0.53.tar.gz \
     | tar -xzC /opt; \
-  ln -s /opt/apache-tomcat-8.5.98 ${CATALINA_HOME}; \
+  ln -s /opt/apache-tomcat-6.0.53 ${CATALINA_HOME}; \
   rm -rf ${CATALINA_HOME}/webapps/*
 
-# PostgreSQL JDBC driver
-RUN curl -fsSL -o ${CATALINA_HOME}/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.2.28.jar
+# PostgreSQL JDBC driver (Java 5 era)
+RUN curl -fsSL -o ${CATALINA_HOME}/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.2-1004.jdbc3.jar
 
 # Entrypoint (reuses existing script; ensure CATALINA_HOME set)
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

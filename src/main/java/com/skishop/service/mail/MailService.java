@@ -220,7 +220,7 @@ public class MailService {
   private static String formatError(Exception e) {
     String message = e.getMessage();
     String detail = e.getClass().getName();
-    if (message != null && !message.isEmpty()) {
+    if (message != null && message.length() > 0) {
       detail = detail + ": " + message;
     }
     if (detail.length() > 500) {
@@ -234,7 +234,7 @@ public class MailService {
       return null;
     }
     String trimmed = value.trim();
-    if (trimmed.isEmpty()) {
+    if (trimmed.length() == 0) {
       return null;
     }
     return trimmed;

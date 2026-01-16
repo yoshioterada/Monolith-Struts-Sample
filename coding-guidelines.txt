@@ -3,5 +3,5 @@ SkiShop Monolith Coding Guidelines (Phase 0)
 - Java 1.5 syntax only (no annotations, lambdas, or generics-heavy APIs).
 - Follow layered architecture: Action -> Service -> DAO -> Domain/DTO.
 - Use camelCase for variables/methods, PascalCase for classes.
-- Log via reload4j (log4j 1.x compatible configuration).
-- Struts 1.2.9 is required; Tiles is not configured in Phase 0.
+- Log via log4j 1.2 (log4j 1.x compatible configuration).
+- Struts 1.2.9 is required; Tiles is configured via `tiles-defs.xml`.

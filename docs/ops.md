@@ -1,8 +1,7 @@
 # Operations & Release Guide
 
-This guide focuses on Tomcat 6/8 because the project ships Dockerfiles for those
-versions (`./Dockerfile`, `./Dockerfile.tomcat6`); for newer Tomcat releases, use
-the Tomcat 8 settings as a baseline.
+This guide focuses on Tomcat 6.0.53 because the project ships Dockerfiles for that
+version (`./Dockerfile`, `./Dockerfile.tomcat6`).
 
 ## Deployment (Tomcat 6)
 1. Build the WAR: `mvn -B package`.
@@ -21,21 +20,6 @@ the Tomcat 8 settings as a baseline.
    in the context XML (Tomcat expands `${...}` from system properties).
 5. Copy `target/skishop-monolith.war` into `$CATALINA_HOME/webapps/` and start Tomcat.
 
-## Deployment (Tomcat 8)
-Use `maxTotal`/`maxWaitMillis` attributes instead of `maxActive`/`maxWait`.
-
-```xml
-<Context>
-  <Resource name="jdbc/skishop" auth="Container" type="javax.sql.DataSource"
-            maxTotal="20" maxIdle="5" maxWaitMillis="10000"
-            username="${db.username}" password="${db.password}"
-            driverClassName="org.postgresql.Driver"
-            url="${db.url}"/>
-</Context>
-```
-
-Tomcat 8 can also deploy the WAR as `ROOT.war` for the root context if desired.
-
 ## Context & Environment Configuration
 The application tries JNDI (`java:comp/env/jdbc/skishop`) first, then falls back to
 `WEB-INF/classes/app.properties`.
@@ -47,7 +31,7 @@ to `DataSourceFactory`):
 - `app.timezone`
 - `smtp.host`, `smtp.port`, `smtp.username`, `smtp.password`, `mail.from`
 
-For JNDI pool settings, follow the Tomcat 6/8 context examples above.
+For JNDI pool settings, follow the Tomcat 6 context example above.
 
 `app.properties` placeholder resolution uses `${TOKEN}` (system properties first, then
 environment variables). The same `${db.url}`/`${db.username}`/`${db.password}` placeholders can
@@ -58,8 +42,6 @@ Default usage:
 Docker entrypoint variables (from `docker/entrypoint.sh` in this repo):
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - Tomcat 6 pool settings: `DB_POOL_MAX_ACTIVE`, `DB_POOL_MAX_IDLE`, `DB_POOL_MAX_WAIT`
-- Tomcat 8 pool settings: `DB_POOL_MAX_TOTAL`, `DB_POOL_MAX_WAIT_MILLIS`, `DB_POOL_MAX_IDLE`
-- `TOMCAT_MAJOR` (6 or 8)
 
 ## Backup & Restore (PostgreSQL)
 Backup:

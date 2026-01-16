@@ -1,8 +1,8 @@
-# Multi-stage build targeting Tomcat 6 + JDK7 (compatible with -source/-target 1.5)
+# Multi-stage build targeting Tomcat 6.0.53 + JDK6 (Java 5 compatible)
 # Stage 1: Build
-FROM azul/zulu-openjdk:7 as build
+FROM azul/zulu-openjdk:6 as build
 
-ARG MAVEN_VERSION=3.2.5
+ARG MAVEN_VERSION=2.2.1
 ENV MAVEN_HOME=/opt/maven
 ENV PATH=${MAVEN_HOME}/bin:${PATH}
 
@@ -18,7 +18,7 @@ COPY src ./src
 RUN mvn -B -DskipTests package
 
 # Stage 2: Runtime
-FROM azul/zulu-openjdk:7-jre as runtime
+FROM azul/zulu-openjdk:6-jre as runtime
 
 ENV CATALINA_HOME=/opt/tomcat
 ENV PATH=${CATALINA_HOME}/bin:${PATH}
@@ -30,8 +30,8 @@ RUN set -eux; \
   ln -s /opt/apache-tomcat-6.0.53 ${CATALINA_HOME}; \
   rm -rf ${CATALINA_HOME}/webapps/*
 
-# PostgreSQL JDBC driver (JRE6+/JRE7 compatible)
-RUN curl -fsSL -o ${CATALINA_HOME}/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
+# PostgreSQL JDBC driver (Java 5 era)
+RUN curl -fsSL -o ${CATALINA_HOME}/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.2-1004.jdbc3.jar
 
 # Entrypoint (reuses existing script; ensure CATALINA_HOME set)
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

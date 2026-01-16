@@ -18,6 +18,10 @@
     <form-bean name="adminShippingMethodForm" type="com.skishop.web.form.admin.AdminShippingMethodForm"/>
   </form-beans>
 
+  <global-exceptions>
+    <exception key="error.global" type="java.lang.Exception" path="/error.jsp"/>
+  </global-exceptions>
+
   <global-forwards>
     <forward name="home" path="/home.do"/>
     <forward name="login" path="/login.do"/>
