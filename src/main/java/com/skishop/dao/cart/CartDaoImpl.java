@@ -84,7 +84,10 @@ public class CartDaoImpl extends AbstractDao implements CartDao {
     List<CartItem> items = new ArrayList<CartItem>();
     try {
       con = getConnection();
-      ps = con.prepareStatement("SELECT id, cart_id, product_id, quantity, unit_price FROM cart_items WHERE cart_id = ? ORDER BY id");
+        ps = con.prepareStatement(
+          "SELECT ci.id, ci.cart_id, ci.product_id, ci.quantity, ci.unit_price, p.name AS product_name " +
+          "FROM cart_items ci LEFT JOIN products p ON ci.product_id = p.id " +
+          "WHERE ci.cart_id = ? ORDER BY ci.id");
       ps.setString(1, cartId);
       rs = ps.executeQuery();
       while (rs.next()) {
@@ -92,6 +95,7 @@ public class CartDaoImpl extends AbstractDao implements CartDao {
         item.setId(rs.getString("id"));
         item.setCartId(rs.getString("cart_id"));
         item.setProductId(rs.getString("product_id"));
+        try { item.setProductName(rs.getString("product_name")); } catch (SQLException ignore) {}
         item.setQuantity(rs.getInt("quantity"));
         item.setUnitPrice(rs.getBigDecimal("unit_price"));
         items.add(item);

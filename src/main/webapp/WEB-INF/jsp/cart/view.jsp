@@ -9,13 +9,13 @@
   <div class="card table-responsive">
   <table>
     <tr>
-      <th>商品ID</th>
+      <th>商品名</th>
       <th>数量</th>
       <th>単価</th>
     </tr>
     <logic:iterate id="item" name="cartItems">
       <tr>
-        <td><bean:write name="item" property="productId" filter="true"/></td>
+        <td><bean:write name="item" property="productName" filter="true"/></td>
         <td><bean:write name="item" property="quantity" filter="true"/></td>
         <td><bean:write name="item" property="unitPrice" filter="true"/></td>
       </tr>

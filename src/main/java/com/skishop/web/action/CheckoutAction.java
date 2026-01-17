@@ -26,6 +26,10 @@ public class CheckoutAction extends Action {
     CheckoutForm checkoutForm = (CheckoutForm) form;
     HttpSession session = request.getSession(false);
     String cartId = checkoutForm.getCartId();
+    if ((cartId == null || cartId.length() == 0) && session != null) {
+      cartId = (String) session.getAttribute("cartId");
+      checkoutForm.setCartId(cartId);
+    }
     User user = session != null ? (User) session.getAttribute("loginUser") : null;
     String userId = user != null ? user.getId() : null;
     try {

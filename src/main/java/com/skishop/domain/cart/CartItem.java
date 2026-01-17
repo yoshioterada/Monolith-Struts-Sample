@@ -6,6 +6,7 @@ public class CartItem {
   private String id;
   private String cartId;
   private String productId;
+  private String productName;
   private int quantity;
   private BigDecimal unitPrice;
 
@@ -31,6 +32,14 @@ public class CartItem {
 
   public void setProductId(String productId) {
     this.productId = productId;
+  }
+
+  public String getProductName() {
+    return productName;
+  }
+
+  public void setProductName(String productName) {
+    this.productName = productName;
   }
 
   public int getQuantity() {
