@@ -1,6 +1,6 @@
 package com.skishop.common.util;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -15,10 +15,10 @@ public final class PasswordHasher {
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  public static String hash(String passwordRaw, String salt) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    byte[] saltBytes = salt.getBytes("UTF-8");
-    byte[] input = concat(saltBytes, passwordRaw.getBytes("UTF-8"));
+  public static String hash(String passwordRaw, String salt) throws NoSuchAlgorithmException {
+    var digest = MessageDigest.getInstance("SHA-256");
+    var saltBytes = salt.getBytes(StandardCharsets.UTF_8);
+    byte[] input = concat(saltBytes, passwordRaw.getBytes(StandardCharsets.UTF_8));
     for (int i = 0; i < HASH_ITERATIONS; i++) {
       input = digest.digest(input);
       digest.reset();
@@ -31,15 +31,13 @@ public final class PasswordHasher {
     if (passwordRaw == null || passwordHash == null) {
       return false;
     }
-    if (salt == null || salt.length() == 0) {
+    if (salt == null || salt.isEmpty()) {
       return secureEquals(passwordRaw, passwordHash);
     }
     try {
-      String hashed = hash(passwordRaw, salt);
+      var hashed = hash(passwordRaw, salt);
       return secureEquals(hashed, passwordHash);
     } catch (NoSuchAlgorithmException e) {
-      return false;
-    } catch (UnsupportedEncodingException e) {
       return false;
     }
   }
@@ -52,9 +50,9 @@ public final class PasswordHasher {
   }
 
   private static String toHex(byte[] data) {
-    StringBuilder builder = new StringBuilder();
+    var builder = new StringBuilder(data.length * 2);
     for (byte value : data) {
-      String hex = Integer.toHexString(value & 0xff);
+      var hex = Integer.toHexString(value & 0xff);
       if (hex.length() == 1) {
         builder.append('0');
       }
@@ -68,11 +66,10 @@ public final class PasswordHasher {
       return false;
     }
     int result = 0;
-    char[] leftChars = left.toCharArray();
-    char[] rightChars = right.toCharArray();
-    int index = 0;
-    for (char leftChar : leftChars) {
-      result |= leftChar ^ rightChars[index++];
+    var leftChars = left.toCharArray();
+    var rightChars = right.toCharArray();
+    for (var i = 0; i < leftChars.length; i++) {
+      result |= leftChars[i] ^ rightChars[i];
     }
     return result == 0;
   }

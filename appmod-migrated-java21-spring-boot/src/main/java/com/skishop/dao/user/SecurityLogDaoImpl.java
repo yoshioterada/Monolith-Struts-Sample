@@ -12,12 +12,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SecurityLogDaoImpl extends AbstractDao implements SecurityLogDao {
   public void insert(SecurityLog log) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement(
-          "INSERT INTO security_logs(id, user_id, event_type, ip_address, user_agent, details_json) VALUES(?,?,?,?,?,?)");
+    var sql = "INSERT INTO security_logs(id, user_id, event_type, ip_address, user_agent, details_json) VALUES(?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, log.getId());
       ps.setString(2, log.getUserId());
       ps.setString(3, log.getEventType());
@@ -27,29 +23,22 @@ public class SecurityLogDaoImpl extends AbstractDao implements SecurityLogDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public int countByUserAndEvent(String userId, String eventType) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT COUNT(*) FROM security_logs WHERE user_id = ? AND event_type = ?");
+    var sql = "SELECT COUNT(*) FROM security_logs WHERE user_id = ? AND event_type = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, userId);
       ps.setString(2, eventType);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        return rs.getInt(1);
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt(1);
+        }
       }
       return 0;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 }

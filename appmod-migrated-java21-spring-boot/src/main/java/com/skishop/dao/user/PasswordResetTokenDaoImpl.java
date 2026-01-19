@@ -13,11 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PasswordResetTokenDaoImpl extends AbstractDao implements PasswordResetTokenDao {
   public void insert(PasswordResetToken token) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO password_reset_tokens(id, user_id, token, expires_at, used_at) VALUES(?,?,?,?,?)");
+    var sql = "INSERT INTO password_reset_tokens(id, user_id, token, expires_at, used_at) VALUES(?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, token.getId());
       ps.setString(2, token.getUserId());
       ps.setString(3, token.getToken());
@@ -26,50 +23,38 @@ public class PasswordResetTokenDaoImpl extends AbstractDao implements PasswordRe
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public PasswordResetToken findByToken(String tokenValue) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, user_id, token, expires_at, used_at FROM password_reset_tokens WHERE token = ?");
+    var sql = "SELECT id, user_id, token, expires_at, used_at FROM password_reset_tokens WHERE token = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, tokenValue);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        PasswordResetToken token = new PasswordResetToken();
-        token.setId(rs.getString("id"));
-        token.setUserId(rs.getString("user_id"));
-        token.setToken(rs.getString("token"));
-        token.setExpiresAt(rs.getTimestamp("expires_at"));
-        token.setUsedAt(rs.getTimestamp("used_at"));
-        return token;
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          var token = new PasswordResetToken();
+          token.setId(rs.getString("id"));
+          token.setUserId(rs.getString("user_id"));
+          token.setToken(rs.getString("token"));
+          token.setExpiresAt(rs.getTimestamp("expires_at"));
+          token.setUsedAt(rs.getTimestamp("used_at"));
+          return token;
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void markUsed(String tokenId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE password_reset_tokens SET used_at = ? WHERE id = ?");
+    var sql = "UPDATE password_reset_tokens SET used_at = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
       ps.setString(2, tokenId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

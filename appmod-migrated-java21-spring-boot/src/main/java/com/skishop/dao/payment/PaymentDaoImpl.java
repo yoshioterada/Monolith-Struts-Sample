@@ -13,11 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PaymentDaoImpl extends AbstractDao implements PaymentDao {
   public void insert(Payment payment) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO payments(id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at) VALUES(?,?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO payments(id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at) VALUES(?,?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, payment.getId());
       ps.setString(2, payment.getOrderId());
       ps.setString(3, payment.getCartId());
@@ -29,53 +26,41 @@ public class PaymentDaoImpl extends AbstractDao implements PaymentDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public Payment findByOrderId(String orderId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at FROM payments WHERE order_id = ?");
+    var sql = "SELECT id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at FROM payments WHERE order_id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, orderId);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        Payment payment = new Payment();
-        payment.setId(rs.getString("id"));
-        payment.setOrderId(rs.getString("order_id"));
-        payment.setCartId(rs.getString("cart_id"));
-        payment.setAmount(rs.getBigDecimal("amount"));
-        payment.setCurrency(rs.getString("currency"));
-        payment.setStatus(rs.getString("status"));
-        payment.setPaymentIntentId(rs.getString("payment_intent_id"));
-        payment.setCreatedAt(rs.getTimestamp("created_at"));
-        return payment;
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          var payment = new Payment();
+          payment.setId(rs.getString("id"));
+          payment.setOrderId(rs.getString("order_id"));
+          payment.setCartId(rs.getString("cart_id"));
+          payment.setAmount(rs.getBigDecimal("amount"));
+          payment.setCurrency(rs.getString("currency"));
+          payment.setStatus(rs.getString("status"));
+          payment.setPaymentIntentId(rs.getString("payment_intent_id"));
+          payment.setCreatedAt(rs.getTimestamp("created_at"));
+          return payment;
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void updateStatus(String paymentId, String status) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE payments SET status = ? WHERE id = ?");
+    var sql = "UPDATE payments SET status = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, status);
       ps.setString(2, paymentId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

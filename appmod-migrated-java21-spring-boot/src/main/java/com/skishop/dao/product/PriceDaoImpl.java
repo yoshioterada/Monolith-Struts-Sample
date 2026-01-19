@@ -13,30 +13,25 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PriceDaoImpl extends AbstractDao implements PriceDao {
   public Price findByProductId(String productId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, product_id, regular_price, sale_price, currency_code, sale_start_date, sale_end_date FROM prices WHERE product_id = ?");
+    var sql = "SELECT id, product_id, regular_price, sale_price, currency_code, sale_start_date, sale_end_date FROM prices WHERE product_id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, productId);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        Price price = new Price();
-        price.setId(rs.getString("id"));
-        price.setProductId(rs.getString("product_id"));
-        price.setRegularPrice(rs.getBigDecimal("regular_price"));
-        price.setSalePrice(rs.getBigDecimal("sale_price"));
-        price.setCurrencyCode(rs.getString("currency_code"));
-        price.setSaleStartDate(rs.getTimestamp("sale_start_date"));
-        price.setSaleEndDate(rs.getTimestamp("sale_end_date"));
-        return price;
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          var price = new Price();
+          price.setId(rs.getString("id"));
+          price.setProductId(rs.getString("product_id"));
+          price.setRegularPrice(rs.getBigDecimal("regular_price"));
+          price.setSalePrice(rs.getBigDecimal("sale_price"));
+          price.setCurrencyCode(rs.getString("currency_code"));
+          price.setSaleStartDate(rs.getTimestamp("sale_start_date"));
+          price.setSaleEndDate(rs.getTimestamp("sale_end_date"));
+          return price;
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
@@ -50,11 +45,8 @@ public class PriceDaoImpl extends AbstractDao implements PriceDao {
   }
 
   private void insert(Price price) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO prices(id, product_id, regular_price, sale_price, currency_code, sale_start_date, sale_end_date) VALUES(?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO prices(id, product_id, regular_price, sale_price, currency_code, sale_start_date, sale_end_date) VALUES(?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, price.getId());
       ps.setString(2, price.getProductId());
       ps.setBigDecimal(3, price.getRegularPrice());
@@ -65,17 +57,12 @@ public class PriceDaoImpl extends AbstractDao implements PriceDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   private void update(String id, Price price) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE prices SET regular_price = ?, sale_price = ?, currency_code = ?, sale_start_date = ?, sale_end_date = ? WHERE id = ?");
+    var sql = "UPDATE prices SET regular_price = ?, sale_price = ?, currency_code = ?, sale_start_date = ?, sale_end_date = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setBigDecimal(1, price.getRegularPrice());
       ps.setBigDecimal(2, price.getSalePrice());
       ps.setString(3, price.getCurrencyCode());
@@ -85,8 +72,6 @@ public class PriceDaoImpl extends AbstractDao implements PriceDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

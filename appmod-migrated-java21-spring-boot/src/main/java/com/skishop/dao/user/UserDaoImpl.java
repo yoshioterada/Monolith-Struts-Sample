@@ -13,51 +13,38 @@ import java.sql.Timestamp;
 @Repository
 public class UserDaoImpl extends AbstractDao implements UserDao {
   public User findByEmail(String email) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, email, username, password_hash, salt, status, role, created_at, updated_at FROM users WHERE email = ?");
+    var sql = "SELECT id, email, username, password_hash, salt, status, role, created_at, updated_at FROM users WHERE email = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, email);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        return mapUser(rs);
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return mapUser(rs);
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public User findById(String id) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, email, username, password_hash, salt, status, role, created_at, updated_at FROM users WHERE id = ?");
+    var sql = "SELECT id, email, username, password_hash, salt, status, role, created_at, updated_at FROM users WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, id);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        return mapUser(rs);
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return mapUser(rs);
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void insert(User user) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO users(id, email, username, password_hash, salt, status, role, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO users(id, email, username, password_hash, salt, status, role, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, user.getId());
       ps.setString(2, user.getEmail());
       ps.setString(3, user.getUsername());
@@ -70,17 +57,12 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void updatePassword(String userId, String passwordHash, String salt) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE users SET password_hash = ?, salt = ?, updated_at = ? WHERE id = ?");
+    var sql = "UPDATE users SET password_hash = ?, salt = ?, updated_at = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, passwordHash);
       ps.setString(2, salt);
       ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
@@ -88,25 +70,18 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void updateStatus(String userId, String status) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE users SET status = ?, updated_at = ? WHERE id = ?");
+    var sql = "UPDATE users SET status = ?, updated_at = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, status);
       ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
       ps.setString(3, userId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

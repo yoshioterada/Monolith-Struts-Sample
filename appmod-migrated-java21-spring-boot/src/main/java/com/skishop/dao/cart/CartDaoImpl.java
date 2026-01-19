@@ -16,37 +16,29 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CartDaoImpl extends AbstractDao implements CartDao {
   public Cart findById(String id) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, user_id, session_id, status, expires_at FROM carts WHERE id = ?");
+    var sql = "SELECT id, user_id, session_id, status, expires_at FROM carts WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, id);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        Cart cart = new Cart();
-        cart.setId(rs.getString("id"));
-        cart.setUserId(rs.getString("user_id"));
-        cart.setSessionId(rs.getString("session_id"));
-        cart.setStatus(rs.getString("status"));
-        cart.setExpiresAt(rs.getTimestamp("expires_at"));
-        return cart;
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          var cart = new Cart();
+          cart.setId(rs.getString("id"));
+          cart.setUserId(rs.getString("user_id"));
+          cart.setSessionId(rs.getString("session_id"));
+          cart.setStatus(rs.getString("status"));
+          cart.setExpiresAt(rs.getTimestamp("expires_at"));
+          return cart;
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void insert(Cart cart) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO carts(id, user_id, session_id, status, expires_at) VALUES(?,?,?,?,?)");
+    var sql = "INSERT INTO carts(id, user_id, session_id, status, expires_at) VALUES(?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, cart.getId());
       ps.setString(2, cart.getUserId());
       ps.setString(3, cart.getSessionId());
@@ -55,17 +47,12 @@ public class CartDaoImpl extends AbstractDao implements CartDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void addItem(CartItem item) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO cart_items(id, cart_id, product_id, quantity, unit_price) VALUES(?,?,?,?,?)");
+    var sql = "INSERT INTO cart_items(id, cart_id, product_id, quantity, unit_price) VALUES(?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, item.getId());
       ps.setString(2, item.getCartId());
       ps.setString(3, item.getProductId());
@@ -74,86 +61,66 @@ public class CartDaoImpl extends AbstractDao implements CartDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public List<CartItem> findItemsByCartId(String cartId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    List<CartItem> items = new ArrayList<CartItem>();
-    try {
-      con = getConnection();
-        ps = con.prepareStatement(
-          "SELECT ci.id, ci.cart_id, ci.product_id, ci.quantity, ci.unit_price, p.name AS product_name " +
-          "FROM cart_items ci LEFT JOIN products p ON ci.product_id = p.id " +
-          "WHERE ci.cart_id = ? ORDER BY ci.id");
+    var sql = """
+        SELECT ci.id, ci.cart_id, ci.product_id, ci.quantity, ci.unit_price, p.name AS product_name
+        FROM cart_items ci LEFT JOIN products p ON ci.product_id = p.id
+        WHERE ci.cart_id = ?
+        ORDER BY ci.id
+        """;
+    final var items = new ArrayList<CartItem>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, cartId);
-      rs = ps.executeQuery();
-      while (rs.next()) {
-        CartItem item = new CartItem();
-        item.setId(rs.getString("id"));
-        item.setCartId(rs.getString("cart_id"));
-        item.setProductId(rs.getString("product_id"));
-        try { item.setProductName(rs.getString("product_name")); } catch (SQLException ignore) {}
-        item.setQuantity(rs.getInt("quantity"));
-        item.setUnitPrice(rs.getBigDecimal("unit_price"));
-        items.add(item);
+      try (var rs = ps.executeQuery()) {
+        while (rs.next()) {
+          var item = new CartItem();
+          item.setId(rs.getString("id"));
+          item.setCartId(rs.getString("cart_id"));
+          item.setProductId(rs.getString("product_id"));
+          item.setProductName(rs.getString("product_name"));
+          item.setQuantity(rs.getInt("quantity"));
+          item.setUnitPrice(rs.getBigDecimal("unit_price"));
+          items.add(item);
+        }
       }
       return items;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void updateItemQuantity(String itemId, int quantity) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE cart_items SET quantity = ? WHERE id = ?");
+    var sql = "UPDATE cart_items SET quantity = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setInt(1, quantity);
       ps.setString(2, itemId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void deleteItemsByCartId(String cartId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("DELETE FROM cart_items WHERE cart_id = ?");
+    var sql = "DELETE FROM cart_items WHERE cart_id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, cartId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void updateStatus(String cartId, String status) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE carts SET status = ? WHERE id = ?");
+    var sql = "UPDATE carts SET status = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, status);
       ps.setString(2, cartId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

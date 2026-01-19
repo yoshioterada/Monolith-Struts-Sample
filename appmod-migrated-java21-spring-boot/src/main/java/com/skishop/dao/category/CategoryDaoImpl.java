@@ -14,16 +14,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CategoryDaoImpl extends AbstractDao implements CategoryDao {
   public List<Category> findAll() {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    List<Category> categories = new ArrayList<Category>();
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, name, parent_id FROM categories ORDER BY name");
-      rs = ps.executeQuery();
+    var sql = "SELECT id, name, parent_id FROM categories ORDER BY name";
+    final var categories = new ArrayList<Category>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql); var rs = ps.executeQuery()) {
       while (rs.next()) {
-        Category c = new Category();
+        var c = new Category();
         c.setId(rs.getString("id"));
         c.setName(rs.getString("name"));
         c.setParentId(rs.getString("parent_id"));
@@ -32,8 +27,6 @@ public class CategoryDaoImpl extends AbstractDao implements CategoryDao {
       return categories;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 }

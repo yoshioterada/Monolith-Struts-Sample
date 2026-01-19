@@ -36,29 +36,26 @@ public class ProductService {
 
   public void deactivateProduct(String productId) {
     Connection con = null;
-    PreparedStatement psProduct = null;
-    PreparedStatement psInventory = null;
     try {
       con = DataSourceLocator.getInstance().getDataSource().getConnection();
       con.setAutoCommit(false);
-      psProduct = con.prepareStatement("UPDATE products SET status = ?, updated_at = ? WHERE id = ?");
-      psProduct.setString(1, STATUS_INACTIVE);
-      psProduct.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-      psProduct.setString(3, productId);
-      psProduct.executeUpdate();
-
-      psInventory = con.prepareStatement("UPDATE inventory SET quantity = ?, status = ? WHERE product_id = ?");
-      psInventory.setInt(1, 0);
-      psInventory.setString(2, STATUS_OUT_OF_STOCK);
-      psInventory.setString(3, productId);
-      psInventory.executeUpdate();
+      try (var psProduct = con.prepareStatement("UPDATE products SET status = ?, updated_at = ? WHERE id = ?")) {
+        psProduct.setString(1, STATUS_INACTIVE);
+        psProduct.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+        psProduct.setString(3, productId);
+        psProduct.executeUpdate();
+      }
+      try (var psInventory = con.prepareStatement("UPDATE inventory SET quantity = ?, status = ? WHERE product_id = ?")) {
+        psInventory.setInt(1, 0);
+        psInventory.setString(2, STATUS_OUT_OF_STOCK);
+        psInventory.setString(3, productId);
+        psInventory.executeUpdate();
+      }
       con.commit();
     } catch (SQLException e) {
       rollbackQuietly(con);
       throw new IllegalStateException("Failed to deactivate product", e);
     } finally {
-      closeQuietly(psInventory);
-      closeQuietly(psProduct);
       closeQuietly(con);
     }
   }

@@ -133,43 +133,40 @@ public class PointService {
       return;
     }
     Connection con = null;
-    PreparedStatement sumPs = null;
-    PreparedStatement updatePs = null;
-    PreparedStatement lockPs = null;
-    ResultSet rs = null;
     try {
       con = DataSourceLocator.getInstance().getDataSource().getConnection();
       con.setAutoCommit(false);
-      lockPs = con.prepareStatement("SELECT id FROM point_accounts WHERE user_id = ? FOR UPDATE");
-      lockPs.setString(1, userId);
-      ResultSet lockRs = lockPs.executeQuery();
-      if (lockRs != null) {
-        lockRs.close();
+      var expirationClause = "user_id = ? AND is_expired = FALSE AND expires_at IS NOT NULL AND expires_at < ?";
+      var now = new java.sql.Timestamp(System.currentTimeMillis());
+
+      try (var lockPs = con.prepareStatement("SELECT id FROM point_accounts WHERE user_id = ? FOR UPDATE")) {
+        lockPs.setString(1, userId);
+        try (var lockRs = lockPs.executeQuery()) {
+          // no-op; just lock
+        }
       }
-      String expirationClause = "user_id = ? AND is_expired = FALSE AND expires_at IS NOT NULL AND expires_at < ?";
-      sumPs = con.prepareStatement("SELECT COALESCE(SUM(amount), 0) FROM point_transactions WHERE " + expirationClause);
-      sumPs.setString(1, userId);
-      sumPs.setTimestamp(2, new java.sql.Timestamp(System.currentTimeMillis()));
-      rs = sumPs.executeQuery();
+
       int expiredAmount = 0;
-      if (rs.next()) {
-        expiredAmount = rs.getInt(1);
+      try (var sumPs = con.prepareStatement("SELECT COALESCE(SUM(amount), 0) FROM point_transactions WHERE " + expirationClause)) {
+        sumPs.setString(1, userId);
+        sumPs.setTimestamp(2, now);
+        try (var rs = sumPs.executeQuery()) {
+          if (rs.next()) {
+            expiredAmount = rs.getInt(1);
+          }
+        }
       }
+
       if (expiredAmount > 0) {
-        updatePs = con.prepareStatement("UPDATE point_transactions SET is_expired = TRUE WHERE " + expirationClause);
-        updatePs.setString(1, userId);
-        updatePs.setTimestamp(2, new java.sql.Timestamp(System.currentTimeMillis()));
-        updatePs.executeUpdate();
-        PreparedStatement accountPs = null;
-        try {
-          accountPs = con.prepareStatement("UPDATE point_accounts SET balance = balance - ? WHERE user_id = ?");
+        try (var updatePs = con.prepareStatement("UPDATE point_transactions SET is_expired = TRUE WHERE " + expirationClause)) {
+          updatePs.setString(1, userId);
+          updatePs.setTimestamp(2, now);
+          updatePs.executeUpdate();
+        }
+        try (var accountPs = con.prepareStatement("UPDATE point_accounts SET balance = balance - ? WHERE user_id = ?")) {
           accountPs.setInt(1, expiredAmount);
           accountPs.setString(2, userId);
           accountPs.executeUpdate();
-        } finally {
-          if (accountPs != null) {
-            accountPs.close();
-          }
         }
       }
       con.commit();
@@ -177,10 +174,6 @@ public class PointService {
       rollbackQuietly(con);
       throw new IllegalStateException("Failed to expire points", e);
     } finally {
-      closeQuietly(rs);
-      closeQuietly(sumPs);
-      closeQuietly(updatePs);
-      closeQuietly(lockPs);
       closeQuietly(con);
     }
   }

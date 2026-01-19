@@ -15,11 +15,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class EmailQueueDaoImpl extends AbstractDao implements EmailQueueDao {
   public void enqueue(EmailQueue mail) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO email_queue(id, to_addr, subject, body, status, retry_count, last_error, scheduled_at, sent_at) VALUES(?,?,?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO email_queue(id, to_addr, subject, body, status, retry_count, last_error, scheduled_at, sent_at) VALUES(?,?,?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, mail.getId());
       ps.setString(2, mail.getToAddr());
       ps.setString(3, mail.getSubject());
@@ -32,17 +29,12 @@ public class EmailQueueDaoImpl extends AbstractDao implements EmailQueueDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void updateStatus(String id, String status, int retryCount, String lastError, java.util.Date scheduledAt, java.util.Date sentAt) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE email_queue SET status = ?, retry_count = ?, last_error = ?, scheduled_at = ?, sent_at = ? WHERE id = ?");
+    var sql = "UPDATE email_queue SET status = ?, retry_count = ?, last_error = ?, scheduled_at = ?, sent_at = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, status);
       ps.setInt(2, retryCount);
       ps.setString(3, lastError);
@@ -52,39 +44,32 @@ public class EmailQueueDaoImpl extends AbstractDao implements EmailQueueDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public List<EmailQueue> findByStatus(String status) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    List<EmailQueue> mails = new ArrayList<EmailQueue>();
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, to_addr, subject, body, status, retry_count, last_error, scheduled_at, sent_at FROM email_queue WHERE status = ? ORDER BY scheduled_at");
+    var sql = "SELECT id, to_addr, subject, body, status, retry_count, last_error, scheduled_at, sent_at FROM email_queue WHERE status = ? ORDER BY scheduled_at";
+    final var mails = new ArrayList<EmailQueue>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, status);
-      rs = ps.executeQuery();
-      while (rs.next()) {
-        EmailQueue mail = new EmailQueue();
-        mail.setId(rs.getString("id"));
-        mail.setToAddr(rs.getString("to_addr"));
-        mail.setSubject(rs.getString("subject"));
-        mail.setBody(rs.getString("body"));
-        mail.setStatus(rs.getString("status"));
-        mail.setRetryCount(rs.getInt("retry_count"));
-        mail.setLastError(rs.getString("last_error"));
-        mail.setScheduledAt(rs.getTimestamp("scheduled_at"));
-        mail.setSentAt(rs.getTimestamp("sent_at"));
-        mails.add(mail);
+      try (var rs = ps.executeQuery()) {
+        while (rs.next()) {
+          var mail = new EmailQueue();
+          mail.setId(rs.getString("id"));
+          mail.setToAddr(rs.getString("to_addr"));
+          mail.setSubject(rs.getString("subject"));
+          mail.setBody(rs.getString("body"));
+          mail.setStatus(rs.getString("status"));
+          mail.setRetryCount(rs.getInt("retry_count"));
+          mail.setLastError(rs.getString("last_error"));
+          mail.setScheduledAt(rs.getTimestamp("scheduled_at"));
+          mail.setSentAt(rs.getTimestamp("sent_at"));
+          mails.add(mail);
+        }
       }
       return mails;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 

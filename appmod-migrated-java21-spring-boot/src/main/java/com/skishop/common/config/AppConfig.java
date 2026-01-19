@@ -18,15 +18,11 @@ public final class AppConfig {
   }
 
   public String getString(String key) {
-    String value = properties.getProperty(key);
-    if (value == null) {
+    var value = properties.getProperty(key);
+    if (value == null || value.isBlank()) {
       return null;
     }
-    String trimmed = value.trim();
-    if (trimmed.length() == 0) {
-      return null;
-    }
-    return trimmed;
+    return value.trim();
   }
 
   public int getInt(String key, int defaultValue) {
@@ -42,29 +38,20 @@ public final class AppConfig {
   }
 
   private void load() {
-    InputStream input = AppConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
-    if (input == null) {
-      throw new IllegalStateException("app.properties not found");
-    }
-    try {
+    try (var input = AppConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
+      if (input == null) {
+        throw new IllegalStateException("app.properties not found");
+      }
       properties.load(input);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to load app.properties", e);
-    } finally {
-      try {
-        input.close();
-      } catch (IOException e) {
-        // ignore close failures
-      }
     }
     resolvePlaceholders();
   }
 
   private void resolvePlaceholders() {
-    Properties resolved = new Properties();
-    java.util.Enumeration<?> keys = properties.propertyNames();
-    while (keys.hasMoreElements()) {
-      String key = (String) keys.nextElement();
+    var resolved = new Properties();
+    for (var key : properties.stringPropertyNames()) {
       resolved.setProperty(key, resolveValue(properties.getProperty(key)));
     }
     properties.clear();
@@ -75,9 +62,9 @@ public final class AppConfig {
     if (value == null) {
       return null;
     }
-    StringBuilder resolved = new StringBuilder();
-    int index = 0;
-    boolean replaced = false;
+    var resolved = new StringBuilder();
+    var index = 0;
+    var replaced = false;
     while (true) {
       int start = value.indexOf("${", index);
       if (start < 0) {
@@ -88,8 +75,8 @@ public final class AppConfig {
         break;
       }
       resolved.append(value.substring(index, start));
-      String token = value.substring(start + 2, end);
-      String replacement = System.getProperty(token);
+      var token = value.substring(start + 2, end);
+      var replacement = System.getProperty(token);
       if (replacement == null) {
         replacement = System.getenv(token);
       }

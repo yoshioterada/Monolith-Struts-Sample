@@ -17,21 +17,23 @@ public class RequestIdFilter implements Filter {
   private static final String HEADER_NAME = "X-Request-Id";
   private static final String MDC_KEY = "reqId";
 
+  @Override
   public void init(FilterConfig filterConfig) {
   }
 
+  @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     String requestId = null;
-    if (request instanceof HttpServletRequest) {
-      requestId = ((HttpServletRequest) request).getHeader(HEADER_NAME);
+    if (request instanceof HttpServletRequest httpRequest) {
+      requestId = httpRequest.getHeader(HEADER_NAME);
     }
     if (isBlank(requestId)) {
       requestId = UUID.randomUUID().toString();
     }
     MDC.put(MDC_KEY, requestId);
-    if (response instanceof HttpServletResponse) {
-      ((HttpServletResponse) response).setHeader(HEADER_NAME, requestId);
+    if (response instanceof HttpServletResponse httpResponse) {
+      httpResponse.setHeader(HEADER_NAME, requestId);
     }
     try {
       chain.doFilter(request, response);
@@ -40,18 +42,11 @@ public class RequestIdFilter implements Filter {
     }
   }
 
+  @Override
   public void destroy() {
   }
 
   private boolean isBlank(String value) {
-    if (value == null) {
-      return true;
-    }
-    for (int i = 0; i < value.length(); i++) {
-      if (!Character.isWhitespace(value.charAt(i))) {
-        return false;
-      }
-    }
-    return true;
+    return value == null || value.isBlank();
   }
 }

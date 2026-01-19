@@ -15,44 +15,34 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CouponDaoImpl extends AbstractDao implements CouponDao {
   public Coupon findByCode(String code) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at FROM coupons WHERE code = ?");
+    var sql = "SELECT id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at FROM coupons WHERE code = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, code);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        return mapCoupon(rs);
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return mapCoupon(rs);
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public List<Coupon> listActive() {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at FROM coupons WHERE is_active = ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY code");
+    var sql = "SELECT id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at FROM coupons WHERE is_active = ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY code";
+    final var coupons = new ArrayList<Coupon>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setBoolean(1, true);
       ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-      rs = ps.executeQuery();
-      List<Coupon> coupons = new ArrayList<Coupon>();
-      while (rs.next()) {
-        coupons.add(mapCoupon(rs));
+      try (var rs = ps.executeQuery()) {
+        while (rs.next()) {
+          coupons.add(mapCoupon(rs));
+        }
       }
       return coupons;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
@@ -61,22 +51,15 @@ public class CouponDaoImpl extends AbstractDao implements CouponDao {
   }
 
   public List<Coupon> listAll() {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at FROM coupons ORDER BY code");
-      rs = ps.executeQuery();
-      List<Coupon> coupons = new ArrayList<Coupon>();
+    var sql = "SELECT id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at FROM coupons ORDER BY code";
+    final var coupons = new ArrayList<Coupon>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql); var rs = ps.executeQuery()) {
       while (rs.next()) {
         coupons.add(mapCoupon(rs));
       }
       return coupons;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
@@ -96,27 +79,19 @@ public class CouponDaoImpl extends AbstractDao implements CouponDao {
   }
 
   private void updateUsageCount(String couponId, int delta) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE coupons SET used_count = used_count + ? WHERE id = ?");
+    var sql = "UPDATE coupons SET used_count = used_count + ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setInt(1, delta);
       ps.setString(2, couponId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   private void insert(Coupon coupon) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO coupons(id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO coupons(id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, coupon.getId());
       ps.setString(2, coupon.getCampaignId());
       ps.setString(3, coupon.getCode());
@@ -132,17 +107,12 @@ public class CouponDaoImpl extends AbstractDao implements CouponDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   private void update(Coupon coupon) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE coupons SET campaign_id = ?, coupon_type = ?, discount_value = ?, discount_type = ?, minimum_amount = ?, maximum_discount = ?, usage_limit = ?, used_count = ?, is_active = ?, expires_at = ? WHERE code = ?");
+    var sql = "UPDATE coupons SET campaign_id = ?, coupon_type = ?, discount_value = ?, discount_type = ?, minimum_amount = ?, maximum_discount = ?, usage_limit = ?, used_count = ?, is_active = ?, expires_at = ? WHERE code = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, coupon.getCampaignId());
       ps.setString(2, coupon.getCouponType());
       ps.setBigDecimal(3, coupon.getDiscountValue());
@@ -157,8 +127,6 @@ public class CouponDaoImpl extends AbstractDao implements CouponDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

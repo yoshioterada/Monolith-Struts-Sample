@@ -24,7 +24,7 @@ public class CouponService {
   }
 
   public Coupon validateCoupon(String code, BigDecimal subtotal) {
-    if (code == null || code.trim().length() == 0) {
+    if (code == null || code.isBlank()) {
       return null;
     }
     Coupon coupon = couponDao.findByCode(code);

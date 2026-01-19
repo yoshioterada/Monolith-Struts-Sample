@@ -12,37 +12,29 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PointAccountDaoImpl extends AbstractDao implements PointAccountDao {
   public PointAccount findByUserId(String userId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, user_id, balance, lifetime_earned, lifetime_redeemed FROM point_accounts WHERE user_id = ?");
+    var sql = "SELECT id, user_id, balance, lifetime_earned, lifetime_redeemed FROM point_accounts WHERE user_id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, userId);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        PointAccount account = new PointAccount();
-        account.setId(rs.getString("id"));
-        account.setUserId(rs.getString("user_id"));
-        account.setBalance(rs.getInt("balance"));
-        account.setLifetimeEarned(rs.getInt("lifetime_earned"));
-        account.setLifetimeRedeemed(rs.getInt("lifetime_redeemed"));
-        return account;
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          var account = new PointAccount();
+          account.setId(rs.getString("id"));
+          account.setUserId(rs.getString("user_id"));
+          account.setBalance(rs.getInt("balance"));
+          account.setLifetimeEarned(rs.getInt("lifetime_earned"));
+          account.setLifetimeRedeemed(rs.getInt("lifetime_redeemed"));
+          return account;
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void insert(PointAccount account) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO point_accounts(id, user_id, balance, lifetime_earned, lifetime_redeemed) VALUES(?,?,?,?,?)");
+    var sql = "INSERT INTO point_accounts(id, user_id, balance, lifetime_earned, lifetime_redeemed) VALUES(?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, account.getId());
       ps.setString(2, account.getUserId());
       ps.setInt(3, account.getBalance());
@@ -51,34 +43,21 @@ public class PointAccountDaoImpl extends AbstractDao implements PointAccountDao 
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void increment(String userId, int amount) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      String updateSql;
-      int absoluteAmount;
-      if (amount >= 0) {
-        updateSql = "UPDATE point_accounts SET balance = balance + ?, lifetime_earned = lifetime_earned + ? WHERE user_id = ?";
-        absoluteAmount = amount;
-      } else {
-        updateSql = "UPDATE point_accounts SET balance = balance + ?, lifetime_redeemed = lifetime_redeemed + ? WHERE user_id = ?";
-        absoluteAmount = Math.abs(amount);
-      }
-      ps = con.prepareStatement(updateSql);
+    var updateSql = amount >= 0
+        ? "UPDATE point_accounts SET balance = balance + ?, lifetime_earned = lifetime_earned + ? WHERE user_id = ?"
+        : "UPDATE point_accounts SET balance = balance + ?, lifetime_redeemed = lifetime_redeemed + ? WHERE user_id = ?";
+    var absoluteAmount = Math.abs(amount);
+    try (var con = getConnection(); var ps = con.prepareStatement(updateSql)) {
       ps.setInt(1, amount);
       ps.setInt(2, absoluteAmount);
       ps.setString(3, userId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 }

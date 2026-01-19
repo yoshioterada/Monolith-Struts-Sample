@@ -16,73 +16,55 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OrderDaoImpl extends AbstractDao implements OrderDao {
   public Order findById(String id) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at FROM orders WHERE id = ?");
+    var sql = "SELECT id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at FROM orders WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, id);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        return mapOrder(rs);
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return mapOrder(rs);
+        }
       }
       return null;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public List<Order> listByUserId(String userId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    List<Order> orders = new ArrayList<Order>();
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at FROM orders WHERE user_id = ? ORDER BY created_at DESC");
+    var sql = "SELECT id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at FROM orders WHERE user_id = ? ORDER BY created_at DESC";
+    final var orders = new ArrayList<Order>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, userId);
-      rs = ps.executeQuery();
-      while (rs.next()) {
-        orders.add(mapOrder(rs));
+      try (var rs = ps.executeQuery()) {
+        while (rs.next()) {
+          orders.add(mapOrder(rs));
+        }
       }
       return orders;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public List<Order> listAll(int limit) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    List<Order> orders = new ArrayList<Order>();
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at FROM orders ORDER BY created_at DESC LIMIT ?");
+    var sql = "SELECT id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at FROM orders ORDER BY created_at DESC LIMIT ?";
+    final var orders = new ArrayList<Order>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setInt(1, limit);
-      rs = ps.executeQuery();
-      while (rs.next()) {
-        orders.add(mapOrder(rs));
+      try (var rs = ps.executeQuery()) {
+        while (rs.next()) {
+          orders.add(mapOrder(rs));
+        }
       }
       return orders;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void insertOrder(Order order) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO orders(id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO orders(id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, order.getId());
       ps.setString(2, order.getOrderNumber());
       ps.setString(3, order.getUserId());
@@ -100,17 +82,12 @@ public class OrderDaoImpl extends AbstractDao implements OrderDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void insertOrderItem(OrderItem item) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("INSERT INTO order_items(id, order_id, product_id, product_name, sku, unit_price, quantity, subtotal) VALUES(?,?,?,?,?,?,?,?)");
+    var sql = "INSERT INTO order_items(id, order_id, product_id, product_name, sku, unit_price, quantity, subtotal) VALUES(?,?,?,?,?,?,?,?)";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, item.getId());
       ps.setString(2, item.getOrderId());
       ps.setString(3, item.getProductId());
@@ -122,72 +99,55 @@ public class OrderDaoImpl extends AbstractDao implements OrderDao {
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public List<OrderItem> listItemsByOrderId(String orderId) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    List<OrderItem> items = new ArrayList<OrderItem>();
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("SELECT id, order_id, product_id, product_name, sku, unit_price, quantity, subtotal FROM order_items WHERE order_id = ? ORDER BY id");
+    var sql = "SELECT id, order_id, product_id, product_name, sku, unit_price, quantity, subtotal FROM order_items WHERE order_id = ? ORDER BY id";
+    final var items = new ArrayList<OrderItem>();
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, orderId);
-      rs = ps.executeQuery();
-      while (rs.next()) {
-        OrderItem item = new OrderItem();
-        item.setId(rs.getString("id"));
-        item.setOrderId(rs.getString("order_id"));
-        item.setProductId(rs.getString("product_id"));
-        item.setProductName(rs.getString("product_name"));
-        item.setSku(rs.getString("sku"));
-        item.setUnitPrice(rs.getBigDecimal("unit_price"));
-        item.setQuantity(rs.getInt("quantity"));
-        item.setSubtotal(rs.getBigDecimal("subtotal"));
-        items.add(item);
+      try (var rs = ps.executeQuery()) {
+        while (rs.next()) {
+          var item = new OrderItem();
+          item.setId(rs.getString("id"));
+          item.setOrderId(rs.getString("order_id"));
+          item.setProductId(rs.getString("product_id"));
+          item.setProductName(rs.getString("product_name"));
+          item.setSku(rs.getString("sku"));
+          item.setUnitPrice(rs.getBigDecimal("unit_price"));
+          item.setQuantity(rs.getInt("quantity"));
+          item.setSubtotal(rs.getBigDecimal("subtotal"));
+          items.add(item);
+        }
       }
       return items;
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(rs, ps, con);
     }
   }
 
   public void updateStatus(String orderId, String status) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?");
+    var sql = "UPDATE orders SET status = ?, updated_at = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, status);
       ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
       ps.setString(3, orderId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 
   public void updatePaymentStatus(String orderId, String paymentStatus) {
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = getConnection();
-      ps = con.prepareStatement("UPDATE orders SET payment_status = ?, updated_at = ? WHERE id = ?");
+    var sql = "UPDATE orders SET payment_status = ?, updated_at = ? WHERE id = ?";
+    try (var con = getConnection(); var ps = con.prepareStatement(sql)) {
       ps.setString(1, paymentStatus);
       ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
       ps.setString(3, orderId);
       ps.executeUpdate();
     } catch (SQLException e) {
       throw new DaoException(e);
-    } finally {
-      closeQuietly(null, ps, con);
     }
   }
 

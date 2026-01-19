@@ -193,22 +193,14 @@ public class MailService {
   }
 
   private static String readText(InputStream input) throws IOException {
-    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(input, UTF_8));
-    StringBuilder buffer = new StringBuilder();
-    try {
+    try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(input, UTF_8))) {
+      var buffer = new StringBuilder();
       String line;
       while ((line = reader.readLine()) != null) {
-        buffer.append(line);
-        buffer.append("\n");
+        buffer.append(line).append('\n');
       }
-    } finally {
-      try {
-        reader.close();
-      } catch (IOException e) {
-        // Ignore close failures.
-      }
+      return buffer.toString();
     }
-    return buffer.toString();
   }
 
   private static String replace(String template, String token, String value) {
@@ -222,9 +214,9 @@ public class MailService {
   }
 
   private static String formatError(Exception e) {
-    String message = e.getMessage();
-    String detail = e.getClass().getName();
-    if (message != null && message.length() > 0) {
+    var message = e.getMessage();
+    var detail = e.getClass().getName();
+    if (message != null && !message.isBlank()) {
       detail = detail + ": " + message;
     }
     if (detail.length() > 500) {
@@ -234,14 +226,10 @@ public class MailService {
   }
 
   private static String normalize(String value) {
-    if (value == null) {
+    if (value == null || value.isBlank()) {
       return null;
     }
-    String trimmed = value.trim();
-    if (trimmed.length() == 0) {
-      return null;
-    }
-    return trimmed;
+    return value.trim();
   }
 
   private String sanitizeAddress(String address) throws MessagingException {

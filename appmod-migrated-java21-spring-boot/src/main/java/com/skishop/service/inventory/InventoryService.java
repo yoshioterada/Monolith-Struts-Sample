@@ -56,45 +56,31 @@ public class InventoryService {
   }
 
   private Inventory lockInventory(Connection con, String productId) throws SQLException {
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-      ps = con.prepareStatement("SELECT id, product_id, quantity, reserved_quantity, status FROM inventory WHERE product_id = ? FOR UPDATE");
+    var sql = "SELECT id, product_id, quantity, reserved_quantity, status FROM inventory WHERE product_id = ? FOR UPDATE";
+    try (var ps = con.prepareStatement(sql)) {
       ps.setString(1, productId);
-      rs = ps.executeQuery();
-      if (rs.next()) {
-        Inventory inventory = new Inventory();
-        inventory.setId(rs.getString("id"));
-        inventory.setProductId(rs.getString("product_id"));
-        inventory.setQuantity(rs.getInt("quantity"));
-        inventory.setReservedQuantity(rs.getInt("reserved_quantity"));
-        inventory.setStatus(rs.getString("status"));
-        return inventory;
+      try (var rs = ps.executeQuery()) {
+        if (rs.next()) {
+          var inventory = new Inventory();
+          inventory.setId(rs.getString("id"));
+          inventory.setProductId(rs.getString("product_id"));
+          inventory.setQuantity(rs.getInt("quantity"));
+          inventory.setReservedQuantity(rs.getInt("reserved_quantity"));
+          inventory.setStatus(rs.getString("status"));
+          return inventory;
+        }
       }
       return null;
-    } finally {
-      if (rs != null) {
-        rs.close();
-      }
-      if (ps != null) {
-        ps.close();
-      }
     }
   }
 
   private void updateReservedQuantity(Connection con, String productId, int delta) throws SQLException {
-    PreparedStatement ps = null;
-    try {
-      // Use two parameters to clamp negative reserved quantities when applying the delta.
-      ps = con.prepareStatement("UPDATE inventory SET reserved_quantity = CASE WHEN reserved_quantity + ? < 0 THEN 0 ELSE reserved_quantity + ? END WHERE product_id = ?");
+    var sql = "UPDATE inventory SET reserved_quantity = CASE WHEN reserved_quantity + ? < 0 THEN 0 ELSE reserved_quantity + ? END WHERE product_id = ?";
+    try (var ps = con.prepareStatement(sql)) {
       ps.setInt(1, delta);
       ps.setInt(2, delta);
       ps.setString(3, productId);
       ps.executeUpdate();
-    } finally {
-      if (ps != null) {
-        ps.close();
-      }
     }
   }
 
