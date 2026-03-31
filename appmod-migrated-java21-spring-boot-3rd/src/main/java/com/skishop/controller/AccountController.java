@@ -102,8 +102,11 @@ public class AccountController {
     public String addAddress(@Valid @ModelAttribute AddressRequest request,
                               BindingResult result,
                               @AuthenticationPrincipal UserDetails userDetails,
+                              Model model,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            List<Address> addresses = addressService.findByUserId(userDetails.getUsername());
+            model.addAttribute("addresses", addresses);
             return "account/addresses";
         }
         addressService.createFromRequest(request, userDetails.getUsername());

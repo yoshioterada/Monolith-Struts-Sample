@@ -138,9 +138,9 @@ src/main/java/com/skishop/
 | `OrderDetailAction` | /orders/detail | USER,ADMIN | `OrderController` |
 | `OrderCancelAction` | /orders/cancel | USER,ADMIN | `OrderController` |
 | `OrderReturnAction` | /orders/return | USER,ADMIN | `OrderController` |
-| `PointBalanceAction` | /points | USER,ADMIN | `PointController` |
-| `AddressListAction` | /addresses | USER,ADMIN | `AddressController` |
-| `AddressSaveAction` | /addresses/save | USER,ADMIN | `AddressController` |
+| `PointBalanceAction` | /points | USER,ADMIN | `AccountController`（/account/points に統合） |
+| `AddressListAction` | /addresses | USER,ADMIN | `AccountController`（/account/addresses に統合） |
+| `AddressSaveAction` | /addresses/save | USER,ADMIN | `AccountController`（/account/addresses に統合） |
 | `AdminProductListAction` | /admin/products | ADMIN | `AdminProductController` |
 | `AdminProductEditAction` | /admin/product/edit | ADMIN | `AdminProductController` |
 | `AdminProductDeleteAction` | /admin/product/delete | ADMIN | `AdminProductController` |
@@ -412,8 +412,7 @@ com.skishop/
 │   ├── CheckoutController.java          # チェックアウト
 │   ├── CouponController.java            # クーポン
 │   ├── OrderController.java             # 注文履歴/詳細/キャンセル/返品
-│   ├── PointController.java             # ポイント
-│   ├── AddressController.java           # 住所管理
+│   ├── AccountController.java            # ポイント + 住所管理（PointController/AddressController を統合）
 │   └── admin/
 │       ├── AdminProductController.java  # 管理：商品管理
 │       ├── AdminOrderController.java    # 管理：注文管理
@@ -506,6 +505,8 @@ com.skishop/
 │   ├── BusinessException.java
 │   ├── AuthenticationException.java
 │   └── GlobalExceptionHandler.java
+├── filter/
+│   └── RequestIdFilter.java             # リクエスト ID フィルター（MDC + X-Request-Id ヘッダー伝播）
 └── util/
     ├── PasswordHasher.java              # 既存パスワード互換ハッシュ（段階的廃止用）
     └── LegacySha256PasswordEncoder.java # DelegatingPasswordEncoder 登録用（段階的廃止）

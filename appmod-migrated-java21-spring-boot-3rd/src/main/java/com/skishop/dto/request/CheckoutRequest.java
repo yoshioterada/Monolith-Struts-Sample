@@ -2,6 +2,7 @@ package com.skishop.dto.request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
  * 注文確定（チェックアウト）リクエストを表すデータ転送オブジェクト（DTO）。
@@ -43,10 +44,15 @@ public record CheckoutRequest(
     @NotBlank(message = "{validation.paymentMethod.required}")
     String paymentMethod,
 
+    @Size(max = 19)
     String cardNumber,
+    @Size(max = 2)
     String cardExpMonth,
+    @Size(max = 4)
     String cardExpYear,
+    @Size(max = 4)
     String cardCvv,
+    @Size(max = 10)
     String billingZip,
 
     @Min(value = 0, message = "{validation.usePoints.min}")

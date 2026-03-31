@@ -103,7 +103,7 @@ class CartServiceAdditionalTest {
         var cart = new Cart();
         cart.setId("cart-1");
         when(cartRepository.findById("cart-1")).thenReturn(Optional.of(cart));
-        when(cartItemRepository.findByCartId("cart-1")).thenReturn(List.of());
+        when(cartItemRepository.findByCartIdAndProductId("cart-1", "prod-new")).thenReturn(Optional.empty());
         when(priceRepository.findByProductId("prod-new")).thenReturn(List.of());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -136,7 +136,7 @@ class CartServiceAdditionalTest {
         var price = new Price();
         price.setRegularPrice(new BigDecimal("5000"));
         when(cartRepository.findById("cart-2")).thenReturn(Optional.of(cart));
-        when(cartItemRepository.findByCartId("cart-2")).thenReturn(List.of());
+        when(cartItemRepository.findByCartIdAndProductId("cart-2", "prod-priced")).thenReturn(Optional.empty());
         when(priceRepository.findByProductId("prod-priced")).thenReturn(List.of(price));
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(i -> i.getArgument(0));
 

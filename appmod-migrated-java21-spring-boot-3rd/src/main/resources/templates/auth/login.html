@@ -10,7 +10,7 @@
 <div layout:fragment="content">
   <h2 class="page-title">ログイン</h2>
   <div class="card">
-    <div th:if="${param.error}" class="messages" style="background:#fce8e8;border-color:#f5a0a0;color:#b31412;">
+    <div th:if="${param.error}" class="messages msg-error">
       メールアドレスまたはパスワードが正しくありません。
     </div>
     <form th:action="@{/auth/login}" method="post">

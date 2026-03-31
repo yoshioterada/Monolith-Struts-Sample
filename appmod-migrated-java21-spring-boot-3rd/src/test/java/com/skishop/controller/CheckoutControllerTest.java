@@ -1,6 +1,7 @@
 package com.skishop.controller;
 
 import com.skishop.config.TestSecurityConfig;
+import com.skishop.dto.request.PlaceOrderCommand;
 import com.skishop.dto.response.CheckoutSummary;
 import com.skishop.model.Cart;
 import com.skishop.model.Order;
@@ -61,15 +62,15 @@ class CheckoutControllerTest {
     }
 
     @Test
-    @DisplayName("バリデーションエラーがある場合、チェックアウト画面に戻る")
+    @DisplayName("バリデーションエラーがある場合、チェックアウト画面にリダイレクトする")
     @WithMockUser(username = "user-id-1")
-    void should_returnCheckoutPage_when_validationErrors() throws Exception {
+    void should_redirectToCheckout_when_validationErrors() throws Exception {
         // Act & Assert
         mockMvc.perform(post("/checkout")
                         .param("paymentMethod", "")   // @NotBlank: 空はエラー
                         .param("usePoints", "0"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("checkout/index"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/checkout*"));
     }
 
     @Test
@@ -82,7 +83,7 @@ class CheckoutControllerTest {
         Order order = new Order();
         order.setId("order-1");
         when(cartService.getOrCreateCart(anyString(), anyString())).thenReturn(cart);
-        when(checkoutService.placeOrder(anyString(), any(), anyInt(), any(), anyString()))
+        when(checkoutService.placeOrder(any(PlaceOrderCommand.class)))
                 .thenReturn(order);
 
         // Act & Assert

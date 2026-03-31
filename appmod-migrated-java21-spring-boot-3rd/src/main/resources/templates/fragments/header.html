@@ -24,8 +24,8 @@
     </form>
     <a th:href="@{/cart}" class="btn">🛒 カート</a>
     <span sec:authorize="isAuthenticated()" class="user-name">こんにちは、<span sec:authentication="name"></span></span>
-    <form sec:authorize="isAuthenticated()" th:action="@{/auth/logout}" method="post" style="display:inline">
-      <button type="submit" style="background:none;color:var(--color-primary);padding:0;border:none;cursor:pointer;text-decoration:underline">ログアウト</button>
+    <form sec:authorize="isAuthenticated()" th:action="@{/auth/logout}" method="post" class="d-inline">
+      <button type="submit" class="btn-link-logout">ログアウト</button>
     </form>
     <a sec:authorize="isAnonymous()" th:href="@{/auth/login}">ログイン</a>
     <a sec:authorize="isAnonymous()" th:href="@{/auth/register}" class="btn">会員登録</a>

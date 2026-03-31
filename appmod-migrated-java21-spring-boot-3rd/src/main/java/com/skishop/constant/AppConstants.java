@@ -4,6 +4,9 @@ package com.skishop.constant;
  * アプリケーション全体で使用するステータス文字列定数を一元管理するクラス。
  *
  * <p>ドメイン横断的なステータス値をここに集約し、散在するマジックストリングを排除する。</p>
+ *
+ * <p><strong>TODO:</strong> OrderStatus, PaymentStatus, InventoryStatus 等の enum 化を
+ * 計画的に実施し、コンパイル時型安全性を確保する。</p>
  */
 public final class AppConstants {
 

@@ -27,10 +27,10 @@
           <td th:text="${order.totalAmount}"></td>
           <td>
             <a th:href="@{/orders/{id}(id=${order.id})}">詳細</a>
-            <form th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" style="display:inline">
+            <form th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="d-inline">
               <button type="submit" onclick="return confirm('キャンセルしますか？')">キャンセル</button>
             </form>
-            <form th:action="@{/orders/{id}/return(id=${order.id})}" method="post" style="display:inline">
+            <form th:action="@{/orders/{id}/return(id=${order.id})}" method="post" class="d-inline">
               <button type="submit" onclick="return confirm('返品申請しますか？')">返品</button>
             </form>
           </td>

@@ -2,6 +2,7 @@ package com.skishop.service;
 
 import com.skishop.dto.request.OrderBuildRequest;
 import com.skishop.dto.request.PaymentInfo;
+import com.skishop.dto.request.PlaceOrderCommand;
 import com.skishop.dto.response.PaymentResult;
 import com.skishop.exception.BusinessException;
 import com.skishop.model.Address;
@@ -10,6 +11,7 @@ import com.skishop.model.CartItem;
 import com.skishop.model.Coupon;
 import com.skishop.model.Order;
 import com.skishop.model.Product;
+import com.skishop.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -101,8 +103,13 @@ class CheckoutServiceTest {
         when(orderService.createOrder(any(), anyList())).thenReturn(order);
         when(addressService.findByUserId("user-1")).thenReturn(List.of());
 
+        var user = new User();
+        user.setId("user-1");
+        user.setEmail("test@example.com");
+        when(userService.findById("user-1")).thenReturn(user);
+
         // Act
-        var result = checkoutService.placeOrder("cart-1", null, 0, paymentInfo, "user-1");
+        var result = checkoutService.placeOrder(new PlaceOrderCommand("cart-1", null, 0, paymentInfo, "user-1"));
 
         // Assert
         assertThat(result).isNotNull();
@@ -120,7 +127,7 @@ class CheckoutServiceTest {
         when(cartService.getItems("cart-1")).thenReturn(List.of());
 
         // Act & Assert
-        assertThatThrownBy(() -> checkoutService.placeOrder("cart-1", null, 0, paymentInfo, "user-1"))
+        assertThatThrownBy(() -> checkoutService.placeOrder(new PlaceOrderCommand("cart-1", null, 0, paymentInfo, "user-1")))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Cart is empty");
     }
@@ -140,7 +147,7 @@ class CheckoutServiceTest {
                 .thenReturn(new PaymentResult.Failure("FAILED", "Declined"));
 
         // Act & Assert
-        assertThatThrownBy(() -> checkoutService.placeOrder("cart-1", null, 0, paymentInfo, "user-1"))
+        assertThatThrownBy(() -> checkoutService.placeOrder(new PlaceOrderCommand("cart-1", null, 0, paymentInfo, "user-1")))
                 .isInstanceOf(BusinessException.class);
 
         // Verify rollback: DB changes (inventory reservation) are rolled back by @Transactional.
@@ -181,8 +188,13 @@ class CheckoutServiceTest {
         when(orderService.createOrder(any(), anyList())).thenReturn(order);
         when(addressService.findByUserId("user-1")).thenReturn(List.of());
 
+        var user = new User();
+        user.setId("user-1");
+        user.setEmail("test@example.com");
+        when(userService.findById("user-1")).thenReturn(user);
+
         // Act
-        checkoutService.placeOrder("cart-1", "SAVE10", 0, paymentInfo, "user-1");
+        checkoutService.placeOrder(new PlaceOrderCommand("cart-1", "SAVE10", 0, paymentInfo, "user-1"));
 
         // Assert
         verify(couponService).markUsed(eq(coupon), eq("user-1"), anyString(), eq(new BigDecimal("1000")));
@@ -214,8 +226,13 @@ class CheckoutServiceTest {
         when(orderService.createOrder(any(), anyList())).thenReturn(order);
         when(addressService.findByUserId("user-1")).thenReturn(List.of());
 
+        var user = new User();
+        user.setId("user-1");
+        user.setEmail("test@example.com");
+        when(userService.findById("user-1")).thenReturn(user);
+
         // Act
-        checkoutService.placeOrder("cart-1", null, 500, paymentInfo, "user-1");
+        checkoutService.placeOrder(new PlaceOrderCommand("cart-1", null, 500, paymentInfo, "user-1"));
 
         // Assert
         verify(pointService).redeemPoints(eq("user-1"), eq(500), anyString());

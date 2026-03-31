@@ -95,7 +95,7 @@ class CartServiceTest {
         existingItem.setId("item-1");
         existingItem.setProductId("prod-1");
         existingItem.setQuantity(2);
-        when(cartItemRepository.findByCartId("cart-1")).thenReturn(List.of(existingItem));
+        when(cartItemRepository.findByCartIdAndProductId("cart-1", "prod-1")).thenReturn(Optional.of(existingItem));
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act

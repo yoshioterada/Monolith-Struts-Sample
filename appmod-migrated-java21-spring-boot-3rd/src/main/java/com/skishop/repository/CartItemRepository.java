@@ -4,6 +4,7 @@ import com.skishop.model.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * {@link CartItem} エンティティのデータアクセスを提供する Spring Data JPA リポジトリ。
@@ -32,6 +33,18 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
      * @return 該当カートのカートアイテムリスト。カートが空の場合は空リスト
      */
     List<CartItem> findByCartId(String cartId);
+
+    /**
+     * カート ID と商品 ID で既存のカートアイテムを検索する。
+     *
+     * <p>カートへの商品追加時に、同一商品が既にカート内に存在するかを
+     * 効率的に判定するために使用される（全件取得 + stream().filter() の代替）。</p>
+     *
+     * @param cartId    カート ID
+     * @param productId 商品 ID
+     * @return 該当カートアイテムの {@link Optional}
+     */
+    Optional<CartItem> findByCartIdAndProductId(String cartId, String productId);
 
     /**
      * 指定されたカート ID に紐づく全カートアイテムを一括削除する。

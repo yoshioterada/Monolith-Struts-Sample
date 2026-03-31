@@ -55,7 +55,7 @@ public class AdminProductService {
     @Transactional
     public Product createProduct(AdminProductRequest request) {
         var product = new Product();
-        product.setId(UUID.randomUUID().toString().substring(0, 20));
+        product.setId(UUID.randomUUID().toString().replace("-", "").substring(0, 20));
         populateProduct(product, request);
         var saved = productRepository.save(product);
 

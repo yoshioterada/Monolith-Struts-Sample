@@ -2,6 +2,7 @@ package com.skishop.controller;
 
 import com.skishop.dto.request.CheckoutRequest;
 import com.skishop.dto.request.PaymentInfo;
+import com.skishop.dto.request.PlaceOrderCommand;
 import com.skishop.dto.response.CheckoutSummary;
 import com.skishop.model.Cart;
 import com.skishop.model.Order;
@@ -98,7 +99,7 @@ public class CheckoutController {
      * @param userDetails Spring Security が注入する認証済みユーザー情報
      * @param session HTTP セッション（クーポン情報のクリアに使用）
      * @param redirectAttributes リダイレクト時のフラッシュ属性（注文完了メッセージ）
-     * @return 成功時: {@code "redirect:/orders/{orderId}"}, バリデーションエラー時: {@code "checkout/index"}
+     * @return 成功時: {@code "redirect:/orders/{orderId}"}, バリデーションエラー時: {@code "redirect:/checkout"}
      */
     @PostMapping
     public String placeOrder(@Valid @ModelAttribute CheckoutRequest request,
@@ -107,7 +108,8 @@ public class CheckoutController {
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            return "checkout/index";
+            redirectAttributes.addFlashAttribute("errorMessage", "error.checkout.failed");
+            return "redirect:/checkout";
         }
         PaymentInfo paymentInfo = new PaymentInfo(
                 request.paymentMethod(),
@@ -118,13 +120,10 @@ public class CheckoutController {
                 request.billingZip()
         );
         Cart cart = cartService.getOrCreateCart(userDetails.getUsername(), session.getId());
-        Order order = checkoutService.placeOrder(
-                cart.getId(),
-                request.couponCode(),
-                request.usePoints(),
-                paymentInfo,
-                userDetails.getUsername()
-        );
+        var command = new PlaceOrderCommand(
+                cart.getId(), request.couponCode(), request.usePoints(),
+                paymentInfo, userDetails.getUsername());
+        Order order = checkoutService.placeOrder(command);
         session.removeAttribute("couponCode");
         session.removeAttribute("couponDiscount");
         redirectAttributes.addFlashAttribute("successMessage", "checkout.orderPlaced");

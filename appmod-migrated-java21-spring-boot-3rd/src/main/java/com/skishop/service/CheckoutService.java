@@ -3,9 +3,11 @@ package com.skishop.service;
 import com.skishop.constant.AppConstants;
 import com.skishop.dto.request.OrderBuildRequest;
 import com.skishop.dto.request.PaymentInfo;
+import com.skishop.dto.request.PlaceOrderCommand;
 import com.skishop.dto.response.CheckoutSummary;
 import com.skishop.dto.response.PaymentResult;
 import com.skishop.exception.BusinessException;
+import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.Address;
 import com.skishop.model.Cart;
 import com.skishop.model.CartItem;
@@ -16,14 +18,15 @@ import com.skishop.model.OrderShipping;
 import com.skishop.model.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -69,6 +72,9 @@ import java.util.UUID;
  * @see com.skishop.controller.CheckoutController
  * @see OrderService
  * @see PaymentService
+ *
+ * <p><strong>TODO:</strong> 依存が 12 個と多い（Orchestrator パターンとして現時点は許容）。
+ * 将来的に金額計算ロジック（calculateOrderAmounts）を OrderAmountCalculator 等に分離を検討。</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -126,19 +132,20 @@ public class CheckoutService {
      *   <li>配送情報の保存、カートのクリア、受注確認メールのキューイング</li>
      * </ol>
      *
-     * @param cartId      チェックアウト対象のカート ID
-     * @param couponCode  適用するクーポンコード（未使用の場合は {@code null} または空文字）
-     * @param usePoints   使用するポイント数（0 の場合はポイント使用なし）
-     * @param paymentInfo 支払い情報（カード番号、有効期限等）
-     * @param userId      ログイン中のユーザー ID（ゲストチェックアウトの場合は {@code null}）
+     * @param command 注文確定に必要なパラメータを集約した {@link PlaceOrderCommand}
      * @return 作成された注文エンティティ
      * @throws BusinessException カートが空、在庫不足、決済失敗等のビジネスルール違反時
      * @throws ResourceNotFoundException カートまたはユーザーが存在しない場合
      * @see com.skishop.controller.CheckoutController
      */
     @Transactional
-    public Order placeOrder(String cartId, String couponCode, int usePoints,
-                            PaymentInfo paymentInfo, String userId) {
+    public Order placeOrder(PlaceOrderCommand command) {
+        String cartId = command.cartId();
+        String couponCode = command.couponCode();
+        int usePoints = command.usePoints();
+        PaymentInfo paymentInfo = command.paymentInfo();
+        String userId = command.userId();
+
         // Step 1: Get cart and items (empty check)
         var cart = cartService.getCart(cartId);
         List<CartItem> items = cartService.getItems(cartId);
@@ -210,7 +217,7 @@ public class CheckoutService {
     @Transactional
     public Order cancelOrder(String orderId, String userId) {
         var order = orderService.findByIdAndUserId(orderId, userId);
-        if (!AppConstants.ORDER_STATUS_CREATED.equals(order.getStatus()) && !AppConstants.ORDER_STATUS_CONFIRMED.equals(order.getStatus())) {
+        if (!Set.of(AppConstants.ORDER_STATUS_CREATED, AppConstants.ORDER_STATUS_CONFIRMED).contains(order.getStatus())) {
             throw new BusinessException("Order cannot be cancelled",
                     "redirect:/orders/" + orderId, "error.order.cancel.invalid");
         }
@@ -365,8 +372,7 @@ public class CheckoutService {
     }
 
     private List<OrderItem> buildOrderItems(String orderId, List<CartItem> items) {
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (CartItem cartItem : items) {
+        return items.stream().map(cartItem -> {
             Product product = productService.findById(cartItem.getProductId());
             var item = new OrderItem();
             item.setId(UUID.randomUUID().toString());
@@ -376,9 +382,8 @@ public class CheckoutService {
             item.setUnitPrice(cartItem.getUnitPrice());
             item.setQuantity(cartItem.getQuantity());
             item.setSubtotal(cartItem.getUnitPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
-            orderItems.add(item);
-        }
-        return orderItems;
+            return item;
+        }).toList();
     }
 
     private void saveShipping(String orderId, BigDecimal shippingFee, String userId) {
@@ -411,8 +416,10 @@ public class CheckoutService {
         try {
             var user = userService.findById(userId);
             mailService.enqueueOrderConfirmation(user.getEmail(), order);
-        } catch (RuntimeException e) {
+        } catch (MailException e) {
             log.error("Failed to enqueue order confirmation email: {}", e.getMessage(), e);
+        } catch (ResourceNotFoundException e) {
+            log.error("User not found for order confirmation email: {}", e.getMessage(), e);
         }
     }
 }

@@ -35,7 +35,7 @@ public class ResourceNotFoundException extends RuntimeException {
      * @param resourceId   見つからなかったリソースの識別子
      */
     public ResourceNotFoundException(String resourceName, String resourceId) {
-        super(resourceName + " not found with id: " + resourceId);
+        super("%s not found with id: %s".formatted(resourceName, resourceId));
         this.resourceName = resourceName;
         this.resourceId = resourceId;
     }

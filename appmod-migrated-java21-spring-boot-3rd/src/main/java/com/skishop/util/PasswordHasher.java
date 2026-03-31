@@ -1,8 +1,9 @@
 package com.skishop.util;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -67,15 +68,15 @@ public final class PasswordHasher {
     public static String hash(String passwordRaw, String salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] saltBytes = salt.getBytes("UTF-8");
-            byte[] input = concat(saltBytes, passwordRaw.getBytes("UTF-8"));
+            byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
+            byte[] input = concat(saltBytes, passwordRaw.getBytes(StandardCharsets.UTF_8));
             for (int i = 0; i < HASH_ITERATIONS; i++) {
                 input = digest.digest(input);
                 digest.reset();
                 input = concat(saltBytes, input);
             }
             return toHex(input);
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 hashing unavailable", e);
         }
     }
@@ -88,14 +89,6 @@ public final class PasswordHasher {
     }
 
     private static String toHex(byte[] data) {
-        StringBuilder builder = new StringBuilder();
-        for (byte value : data) {
-            String hex = Integer.toHexString(value & 0xff);
-            if (hex.length() == 1) {
-                builder.append('0');
-            }
-            builder.append(hex);
-        }
-        return builder.toString();
+        return HexFormat.of().formatHex(data);
     }
 }

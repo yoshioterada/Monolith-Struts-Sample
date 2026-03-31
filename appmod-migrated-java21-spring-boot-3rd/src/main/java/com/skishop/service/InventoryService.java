@@ -49,6 +49,10 @@ public class InventoryService {
      * 必要数量を満たすか検証し、十分であれば予約数を加算する。
      * 在庫不足の商品がある場合は即座に例外をスローする。</p>
      *
+     * <p><strong>パフォーマンス注記:</strong> 個別 SELECT + UPDATE（N アイテム × 2 クエリ）だが、
+     * 各在庫レコードに {@code @Version} 楽観ロックが設定されているため、
+     * バルク UPDATE に変更すると競合検出が困難になる。現行方式を維持する。</p>
+     *
      * @param items 在庫を確保するカートアイテムのリスト
      * @throws BusinessException          在庫が不足している場合
      * @throws ResourceNotFoundException 商品に対応する在庫レコードが存在しない場合

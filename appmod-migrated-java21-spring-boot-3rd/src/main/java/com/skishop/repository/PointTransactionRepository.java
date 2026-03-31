@@ -46,9 +46,11 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
      * @return 更新された行数
      */
     @Modifying
-    @Query("UPDATE PointTransaction t SET t.expired = true " +
-           "WHERE t.userId = :userId AND t.expired = false " +
-           "AND t.expiresAt IS NOT NULL AND t.expiresAt < :now")
+    @Query("""
+            UPDATE PointTransaction t SET t.expired = true
+            WHERE t.userId = :userId AND t.expired = false
+            AND t.expiresAt IS NOT NULL AND t.expiresAt < :now
+            """)
     int bulkExpire(@Param("userId") String userId, @Param("now") LocalDateTime now);
 
     /**
@@ -58,8 +60,10 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
      * @param now    現在日時
      * @return 失効ポイント合計（null の場合は 0）
      */
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM PointTransaction t " +
-           "WHERE t.userId = :userId AND t.expired = false " +
-           "AND t.expiresAt IS NOT NULL AND t.expiresAt < :now AND t.amount > 0")
+    @Query("""
+            SELECT COALESCE(SUM(t.amount), 0) FROM PointTransaction t
+            WHERE t.userId = :userId AND t.expired = false
+            AND t.expiresAt IS NOT NULL AND t.expiresAt < :now AND t.amount > 0
+            """)
     int sumExpiredAmount(@Param("userId") String userId, @Param("now") LocalDateTime now);
 }

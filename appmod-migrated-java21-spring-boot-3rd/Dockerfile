@@ -21,7 +21,7 @@ ENTRYPOINT ["java", \
   "-Djava.security.egd=file:/dev/./urandom", \
   "-jar", "/app/app.jar"]
 
+EXPOSE 8080
+
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:8080/actuator/health || exit 1
-
-EXPOSE 8080

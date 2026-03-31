@@ -34,6 +34,11 @@ public interface OrderRepository extends JpaRepository<Order, String> {
      * <p>マイページの注文履歴一覧で使用される。ユーザーの全注文（ステータス問わず）を
      * 返すため、結果は 0 件以上のリストとなる。</p>
      *
+     * <p><strong>注意:</strong> このメソッドは注文明細（{@code items}）を LAZY のまま取得する。
+     * 一覧画面では {@code order.orderNumber / status / totalAmount / id} のみを参照し、
+     * {@code order.items} にはアクセスしないこと。明細が必要な場合は
+     * {@link #findWithItemsById(String)} を使用する。</p>
+     *
      * @param userId 検索対象のユーザー ID（null 不可）
      * @return 該当ユーザーの注文リスト。注文がない場合は空リスト
      */

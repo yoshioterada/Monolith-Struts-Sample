@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import org.hibernate.annotations.BatchSize;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -42,5 +43,6 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @BatchSize(size = 50)
     private Category parent;
 }

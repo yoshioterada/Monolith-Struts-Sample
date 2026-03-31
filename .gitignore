@@ -22,6 +22,8 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/dists/
+appmod-migrated-java21-spring-boot-3rd/target/
+appmod-migrated-java21-spring-boot-3rd/target/classes
 
 # IntelliJ IDEA
 .idea/

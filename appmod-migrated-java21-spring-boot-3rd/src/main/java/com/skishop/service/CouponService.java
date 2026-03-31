@@ -39,6 +39,10 @@ import java.util.UUID;
  *
  * <p>管理者向け操作（作成・更新・削除）は {@code ADMIN} ロールが必要。</p>
  *
+ * <p><strong>移行メモ:</strong> Struts 版の {@code CouponAvailableAction}（ユーザー向けクーポン一覧）は
+ * 管理者向け {@code AdminCouponController} に統合済み。ユーザー向けクーポン一覧機能は
+ * 現行 EC フローで不要と判断し意図的に省略している。</p>
+ *
  * <p>依存関係:</p>
  * <ul>
  *   <li>{@link CouponRepository} — クーポンエンティティの永続化</li>

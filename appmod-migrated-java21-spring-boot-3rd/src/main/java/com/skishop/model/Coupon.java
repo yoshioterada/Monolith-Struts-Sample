@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -73,4 +74,8 @@ public class Coupon {
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }

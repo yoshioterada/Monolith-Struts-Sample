@@ -180,10 +180,7 @@ public class CartService {
         var cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", cartId));
 
-        List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        var existingItem = items.stream()
-                .filter(item -> productId.equals(item.getProductId()))
-                .findFirst();
+        var existingItem = cartItemRepository.findByCartIdAndProductId(cartId, productId);
         if (existingItem.isPresent()) {
             existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
             cartItemRepository.save(existingItem.get());
@@ -295,21 +292,7 @@ public class CartService {
         if (sessionCart.isEmpty()) {
             return;
         }
-        var cart = sessionCart.orElseThrow();
-        List<Cart> userCarts = cartRepository.findByUserIdAndStatus(userId, AppConstants.STATUS_ACTIVE);
-        if (userCarts.isEmpty()) {
-            cart.setUserId(userId);
-            cartRepository.save(cart);
-        } else {
-            var userCart = userCarts.getFirst();
-            List<CartItem> sessionItems = cartItemRepository.findByCartId(cart.getId());
-            for (CartItem sessionItem : sessionItems) {
-                addItem(userCart.getId(), sessionItem.getProductId(), sessionItem.getQuantity());
-            }
-            cartItemRepository.deleteByCartId(cart.getId());
-            cart.setStatus(AppConstants.CART_STATUS_MERGED);
-            cartRepository.save(cart);
-        }
+        mergeCart(sessionCart.orElseThrow(), userId);
     }
 
     /**
@@ -328,20 +311,23 @@ public class CartService {
         if (cartOpt.isEmpty()) {
             return;
         }
-        var cart = cartOpt.orElseThrow();
+        mergeCart(cartOpt.orElseThrow(), userId);
+    }
+
+    private void mergeCart(Cart sourceCart, String userId) {
         List<Cart> userCarts = cartRepository.findByUserIdAndStatus(userId, AppConstants.STATUS_ACTIVE);
         if (userCarts.isEmpty()) {
-            cart.setUserId(userId);
-            cartRepository.save(cart);
+            sourceCart.setUserId(userId);
+            cartRepository.save(sourceCart);
         } else {
             var userCart = userCarts.getFirst();
-            List<CartItem> sessionItems = cartItemRepository.findByCartId(cart.getId());
+            List<CartItem> sessionItems = cartItemRepository.findByCartId(sourceCart.getId());
             for (CartItem sessionItem : sessionItems) {
                 addItem(userCart.getId(), sessionItem.getProductId(), sessionItem.getQuantity());
             }
-            cartItemRepository.deleteByCartId(cart.getId());
-            cart.setStatus(AppConstants.CART_STATUS_MERGED);
-            cartRepository.save(cart);
+            cartItemRepository.deleteByCartId(sourceCart.getId());
+            sourceCart.setStatus(AppConstants.CART_STATUS_MERGED);
+            cartRepository.save(sourceCart);
         }
     }
 
