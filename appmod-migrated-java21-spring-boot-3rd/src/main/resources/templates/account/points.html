@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>ポイント残高</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">ポイント残高</h2>
+  <div th:if="${pointBalance != null}" class="card">
+    <p>残高: <strong th:text="${pointBalance.balance}"></strong></p>
+    <p>累計獲得: <span th:text="${pointBalance.lifetimeEarned}"></span></p>
+    <p>累計利用: <span th:text="${pointBalance.lifetimeRedeemed}"></span></p>
+  </div>
+  <div th:if="${pointBalance == null}" class="card">
+    <p>ポイント情報がありません。</p>
+  </div>
+</div>
+</body>
+</html>

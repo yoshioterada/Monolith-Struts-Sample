@@ -1,0 +1,55 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      testType:
+        description: 'Test type (smoke/load/stress)'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+      script:
+        description: 'Test script to run'
+        required: true
+        default: 'full-scenario'
+        type: choice
+        options:
+          - full-scenario
+          - auth-flow
+          - browse-products
+          - cart-order-flow
+          - health-check
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 test
+        working-directory: load-tests
+        run: |
+          k6 run \
+            --config config/${{ inputs.testType }}.json \
+            --out json=results/${{ inputs.testType }}-${{ inputs.script }}.json \
+            --summary-export results/${{ inputs.testType }}-${{ inputs.script }}-summary.json \
+            scripts/${{ inputs.script }}.js
+        env:
+          GATEWAY_URL: ${{ vars.GATEWAY_URL || 'http://localhost:8090' }}
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results-${{ inputs.testType }}-${{ inputs.script }}-${{ github.run_number }}
+          path: load-tests/results/
+          retention-days: 30

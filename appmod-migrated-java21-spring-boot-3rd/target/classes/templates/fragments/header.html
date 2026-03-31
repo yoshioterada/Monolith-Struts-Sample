@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ja">
+<body>
+<div th:fragment="header" class="inner">
+  <div class="logo"><a th:href="@{/}">Ski Resort Shop</a></div>
+  <ul class="app-nav">
+    <li><a th:href="@{/}">ホーム</a></li>
+    <li><a th:href="@{/products}">商品</a></li>
+    <li><a th:href="@{/coupons}">クーポン</a></li>
+    <li sec:authorize="isAuthenticated()"><a th:href="@{/orders}">注文履歴</a></li>
+    <li sec:authorize="isAuthenticated()"><a th:href="@{/account/points}">ポイント</a></li>
+    <li sec:authorize="isAuthenticated()"><a th:href="@{/account/addresses}">住所帳</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/products}">管理:商品</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/orders}">管理:注文</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/coupons}">管理:クーポン</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/shipping-methods}">管理:配送方法</a></li>
+  </ul>
+  <div class="actions">
+    <form th:action="@{/products}" method="get" class="header-search">
+      <input type="text" name="keyword" placeholder="商品名やブランドで検索">
+      <button type="submit">🔍</button>
+    </form>
+    <a th:href="@{/cart}" class="btn">🛒 カート</a>
+    <span sec:authorize="isAuthenticated()" class="user-name">こんにちは、<span sec:authentication="name"></span></span>
+    <form sec:authorize="isAuthenticated()" th:action="@{/auth/logout}" method="post" style="display:inline">
+      <button type="submit" style="background:none;color:var(--color-primary);padding:0;border:none;cursor:pointer;text-decoration:underline">ログアウト</button>
+    </form>
+    <a sec:authorize="isAnonymous()" th:href="@{/auth/login}">ログイン</a>
+    <a sec:authorize="isAnonymous()" th:href="@{/auth/register}" class="btn">会員登録</a>
+  </div>
+</div>
+</body>
+</html>

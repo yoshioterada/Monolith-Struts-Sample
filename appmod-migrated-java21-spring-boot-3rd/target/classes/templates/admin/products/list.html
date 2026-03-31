@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>商品管理</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">商品管理</h2>
+  <p><a th:href="@{/admin/products/new}" class="btn">商品を追加</a></p>
+  <p th:if="${products == null or products.isEmpty()}">商品がありません。</p>
+  <div th:unless="${products == null or products.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th th:text="#{label.productName}">Product Name</th>
+          <th th:text="#{label.brand}">Brand</th>
+          <th th:text="#{label.productStatus}">Status</th>
+          <th>編集</th>
+          <th>削除</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="product : ${products}">
+          <td th:text="${product.id}"></td>
+          <td th:text="${product.name}"></td>
+          <td th:text="${product.brand}"></td>
+          <td th:text="${product.status}"></td>
+          <td><a th:href="@{/admin/products/{id}/edit(id=${product.id})}">編集</a></td>
+          <td>
+            <form th:action="@{/admin/products/{id}(id=${product.id})}" method="post">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit" onclick="return confirm('削除しますか？')">削除</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

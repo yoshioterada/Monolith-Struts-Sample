@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>ホーム</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <div class="hero">
+    <h1>Azure SkiShop へようこそ</h1>
+    <p>最高品質のスキー・スノーボード用品で、あなたの冬のアドベンチャーを始めよう。</p>
+    <div class="hero-actions">
+      <a th:href="@{/products}" class="btn">商品を見る</a>
+    </div>
+  </div>
+
+  <h2 class="page-title">おすすめスキー用品</h2>
+  <div th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}" class="products-grid">
+    <div th:each="product : ${featuredProducts}" class="product-card">
+      <div class="name">
+        <a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}"></a>
+      </div>
+      <div th:if="${product.brand != null}" class="tags">
+        <span class="tag" th:text="${product.brand}"></span>
+      </div>
+      <div>
+        <a th:href="@{/products/{id}(id=${product.id})}" class="btn">詳細を見る</a>
+      </div>
+    </div>
+  </div>
+  <p th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">おすすめ商品を準備中です。</p>
+</div>
+</body>
+</html>

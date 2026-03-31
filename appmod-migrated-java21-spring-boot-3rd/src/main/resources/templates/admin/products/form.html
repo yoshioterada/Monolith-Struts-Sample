@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>商品編集</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title" th:text="${adminProductRequest.id != null} ? '商品編集' : '商品追加'">商品編集</h2>
+  <div class="card">
+    <form th:action="${adminProductRequest.id != null ? '/admin/products/' + adminProductRequest.id : '/admin/products'}"
+          th:method="${adminProductRequest.id != null ? 'put' : 'post'}"
+          th:object="${adminProductRequest}">
+      <table>
+        <tr>
+          <th><label for="name" th:text="#{label.productName}">Product Name</label></th>
+          <td>
+            <input id="name" type="text" th:field="*{name}" size="40">
+            <span th:errors="*{name}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="brand" th:text="#{label.brand}">Brand</label></th>
+          <td><input id="brand" type="text" th:field="*{brand}" size="30"></td>
+        </tr>
+        <tr>
+          <th><label for="description" th:text="#{label.description}">Description</label></th>
+          <td><textarea id="description" th:field="*{description}" cols="40" rows="4"></textarea></td>
+        </tr>
+        <tr>
+          <th><label for="categoryId" th:text="#{label.category}">Category</label></th>
+          <td><input id="categoryId" type="text" th:field="*{categoryId}" size="20"></td>
+        </tr>
+        <tr>
+          <th><label for="regularPrice" th:text="#{label.productPrice}">Regular Price</label></th>
+          <td>
+            <input id="regularPrice" type="number" th:field="*{regularPrice}" step="any" min="0" size="10">
+            <span th:errors="*{regularPrice}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="salePrice">セール価格</label></th>
+          <td><input id="salePrice" type="number" th:field="*{salePrice}" step="any" min="0" size="10"></td>
+        </tr>
+        <tr>
+          <th><label for="status" th:text="#{label.productStatus}">Status</label></th>
+          <td><input id="status" type="text" th:field="*{status}" size="12"></td>
+        </tr>
+        <tr>
+          <th><label for="inventoryQty" th:text="#{label.inventoryQty}">Inventory Quantity</label></th>
+          <td><input id="inventoryQty" type="number" th:field="*{inventoryQty}" min="0" size="6"></td>
+        </tr>
+      </table>
+      <button type="submit">保存</button>
+    </form>
+  </div>
+  <p><a th:href="@{/admin/products}">商品一覧へ戻る</a></p>
+</div>
+</body>
+</html>

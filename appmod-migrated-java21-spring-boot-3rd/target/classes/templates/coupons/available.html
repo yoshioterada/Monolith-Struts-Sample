@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>利用可能なクーポン</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">利用可能なクーポン</h2>
+  <p th:if="${coupons == null or coupons.isEmpty()}">利用可能なクーポンはありません。</p>
+  <div th:unless="${coupons == null or coupons.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th th:text="#{label.couponCode}">Code</th>
+          <th th:text="#{label.couponType}">Type</th>
+          <th th:text="#{label.discountValue}">Discount</th>
+          <th th:text="#{label.minimumAmount}">Min. Amount</th>
+          <th th:text="#{label.maximumDiscount}">Max. Discount</th>
+          <th th:text="#{label.expiresAt}">Expires At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="coupon : ${coupons}">
+          <td th:text="${coupon.code}"></td>
+          <td th:text="${coupon.couponType}"></td>
+          <td th:text="${coupon.discountValue}"></td>
+          <td th:text="${coupon.minimumAmount}"></td>
+          <td th:text="${coupon.maximumDiscount}"></td>
+          <td th:text="${coupon.expiresAt}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

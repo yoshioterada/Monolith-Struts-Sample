@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>クーポン編集</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">クーポン編集</h2>
+  <div class="card">
+    <form th:action="@{/admin/coupons}" method="post" th:object="${adminCouponRequest}">
+      <input type="hidden" th:field="*{id}">
+      <table>
+        <tr>
+          <th><label for="code" th:text="#{label.couponCode}">Code</label></th>
+          <td>
+            <input id="code" type="text" th:field="*{code}" size="20">
+            <span th:errors="*{code}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="campaignId" th:text="#{label.campaignId}">Campaign ID</label></th>
+          <td><input id="campaignId" type="text" th:field="*{campaignId}" size="20"></td>
+        </tr>
+        <tr>
+          <th><label for="couponType" th:text="#{label.couponType}">Coupon Type</label></th>
+          <td><input id="couponType" type="text" th:field="*{couponType}" size="12"></td>
+        </tr>
+        <tr>
+          <th><label for="discountType" th:text="#{label.discountType}">Discount Type</label></th>
+          <td><input id="discountType" type="text" th:field="*{discountType}" size="12"></td>
+        </tr>
+        <tr>
+          <th><label for="discountValue" th:text="#{label.discountValue}">Discount Value</label></th>
+          <td><input id="discountValue" type="number" th:field="*{discountValue}" step="any" size="10"></td>
+        </tr>
+        <tr>
+          <th><label for="minimumAmount" th:text="#{label.minimumAmount}">Minimum Amount</label></th>
+          <td><input id="minimumAmount" type="number" th:field="*{minimumAmount}" step="any" size="10"></td>
+        </tr>
+        <tr>
+          <th><label for="maximumDiscount" th:text="#{label.maximumDiscount}">Maximum Discount</label></th>
+          <td><input id="maximumDiscount" type="number" th:field="*{maximumDiscount}" step="any" size="10"></td>
+        </tr>
+        <tr>
+          <th><label for="usageLimit" th:text="#{label.usageLimit}">Usage Limit</label></th>
+          <td><input id="usageLimit" type="number" th:field="*{usageLimit}" size="6"></td>
+        </tr>
+        <tr>
+          <th><label for="active" th:text="#{label.couponActive}">Active</label></th>
+          <td><input id="active" type="checkbox" th:field="*{active}"></td>
+        </tr>
+        <tr>
+          <th><label for="expiresAt" th:text="#{label.expiresAt}">Expires At</label></th>
+          <td><input id="expiresAt" type="text" th:field="*{expiresAt}" size="12" placeholder="YYYY-MM-DD"></td>
+        </tr>
+      </table>
+      <button type="submit">保存</button>
+    </form>
+  </div>
+  <p><a th:href="@{/admin/coupons}">クーポン一覧へ戻る</a></p>
+</div>
+</body>
+</html>

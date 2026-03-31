@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>注文管理</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">注文管理</h2>
+  <p th:if="${orders == null or orders.isEmpty()}">注文データがありません。</p>
+  <div th:unless="${orders == null or orders.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>注文番号</th>
+          <th>状態</th>
+          <th>支払状態</th>
+          <th>合計</th>
+          <th>詳細</th>
+          <th>状態更新</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="order : ${orders}">
+          <td th:text="${order.orderNumber}"></td>
+          <td th:text="${order.status}"></td>
+          <td th:text="${order.paymentStatus}"></td>
+          <td th:text="${order.totalAmount}"></td>
+          <td><a th:href="@{/admin/orders/{id}(id=${order.id})}">詳細</a></td>
+          <td>
+            <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
+              <input type="hidden" name="_method" value="PUT">
+              <input type="text" name="status" th:value="${order.status}" size="10">
+              <button type="submit">更新</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

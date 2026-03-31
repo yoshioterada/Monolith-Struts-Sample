@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title layout:title-pattern="$CONTENT_TITLE - SkiShop" th:text="#{app.title}">SkiShop</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+  <div class="app-header">
+    <div th:replace="~{fragments/header :: header}"></div>
+  </div>
+  <div class="site-container">
+    <div th:replace="~{fragments/messages :: messages}"></div>
+    <div layout:fragment="content">
+      <!-- ページ固有コンテンツ -->
+    </div>
+  </div>
+  <div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

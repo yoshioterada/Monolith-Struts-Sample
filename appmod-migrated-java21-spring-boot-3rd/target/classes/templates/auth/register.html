@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>会員登録</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">会員登録</h2>
+  <div class="card">
+    <form th:action="@{/auth/register}" th:object="${registerRequest}" method="post">
+      <table>
+        <tr>
+          <th><label for="email" th:text="#{label.email}">Email</label></th>
+          <td>
+            <input id="email" type="email" th:field="*{email}" required size="30">
+            <span th:errors="*{email}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="username" th:text="#{label.username}">Username</label></th>
+          <td>
+            <input id="username" type="text" th:field="*{username}" required size="30">
+            <span th:errors="*{username}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="password" th:text="#{label.password}">Password</label></th>
+          <td>
+            <input id="password" type="password" th:field="*{password}" required size="30">
+            <span th:errors="*{password}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="passwordConfirm" th:text="#{label.passwordConfirm}">Confirm Password</label></th>
+          <td>
+            <input id="passwordConfirm" type="password" th:field="*{passwordConfirm}" required size="30">
+            <span th:errors="*{passwordConfirm}" style="color:red;"></span>
+          </td>
+        </tr>
+      </table>
+      <button type="submit">登録</button>
+    </form>
+    <p><a th:href="@{/auth/login}">ログインへ戻る</a></p>
+  </div>
+</div>
+</body>
+</html>

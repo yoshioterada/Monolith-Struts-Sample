@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "edit_file|create_file",
+        "type": "command",
+        "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\"},\"systemMessage\":\"編集前確認: (1)OWASP Top10脆弱性パターンを含まないか (2)秘密情報のハードコード禁止 (3)@Validバリデーション必要か (4)SQLパラメータバインド使用 (5)System.out.println禁止 (6)例外握りつぶし禁止\"}'",
+        "timeout": 5
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "edit_file",
+        "type": "command",
+        "command": ".github/hooks/scripts/post-edit-check.sh",
+        "timeout": 30
+      }
+    ],
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/inject-project-context.sh",
+        "timeout": 10
+      }
+    ]
+  }
+}

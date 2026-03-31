@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>商品詳細</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <div class="breadcrumb">
+    <a th:href="@{/products}">商品一覧</a> &rsaquo; <span th:text="${product.name}"></span>
+  </div>
+  <div th:if="${product != null}">
+    <h2 class="page-title" th:text="${product.name}"></h2>
+    <div class="card">
+      <p>ブランド: <strong th:text="${product.brand}"></strong></p>
+      <p>SKU: <span th:text="${product.sku}"></span></p>
+      <p th:text="${product.description}"></p>
+      <form th:action="@{/cart/items}" method="post">
+        <input type="hidden" name="productId" th:value="${product.id}">
+        <label th:text="#{label.quantity}">Quantity</label>
+        <input type="number" name="quantity" value="1" min="1" size="3">
+        <button type="submit">カートへ追加</button>
+      </form>
+    </div>
+  </div>
+  <div th:if="${product == null}" class="card">
+    <p>商品情報が取得できませんでした。</p>
+    <a th:href="@{/products}">商品一覧へ戻る</a>
+  </div>
+</div>
+</body>
+</html>

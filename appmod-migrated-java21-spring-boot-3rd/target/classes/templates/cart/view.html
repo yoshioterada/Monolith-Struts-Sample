@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>カート</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">カート</h2>
+
+  <div th:if="${cart == null or cart.items == null or cart.items.isEmpty()}" class="card">
+    カートは空です。
+    <a th:href="@{/products}">商品一覧へ戻る</a>
+  </div>
+
+  <div th:unless="${cart == null or cart.items == null or cart.items.isEmpty()}">
+    <div class="card table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>数量</th>
+            <th>値段</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="item : ${cart.items}">
+            <td th:text="${item.productName}"></td>
+            <td th:text="${item.quantity}"></td>
+            <td th:text="${item.unitPrice}"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card cart-summary">
+      <p>小計: <strong th:text="${cart.subtotal}"></strong></p>
+      <div th:if="${coupon != null}">
+        <p>クーポン: <span th:text="${coupon.code}"></span></p>
+        <p>割引額: <span th:text="${discountAmount}"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <h3>クーポン適用</h3>
+  <form th:action="@{/cart/coupon}" method="post">
+    <input type="text" name="code" size="20" placeholder="クーポンコード">
+    <button type="submit">適用</button>
+  </form>
+
+  <p><a th:href="@{/checkout}" class="btn">チェックアウトへ</a></p>
+</div>
+</body>
+</html>

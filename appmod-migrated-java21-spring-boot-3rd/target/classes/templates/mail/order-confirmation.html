@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ご注文確認</title>
+</head>
+<body>
+  <p>SkiShop をご利用いただきありがとうございます。</p>
+  <p>ご注文を受け付けました。</p>
+  <table>
+    <tr>
+      <th>注文番号</th>
+      <td th:text="${order.orderNumber}"></td>
+    </tr>
+    <tr>
+      <th>合計金額</th>
+      <td th:text="${order.totalAmount}"></td>
+    </tr>
+  </table>
+  <p>商品の発送が完了次第、再度ご連絡いたします。</p>
+  <p>SkiShop チーム</p>
+</body>
+</html>

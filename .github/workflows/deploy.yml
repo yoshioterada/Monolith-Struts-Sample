@@ -1,0 +1,190 @@
+name: Deploy to Azure Container Apps
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to deploy (comma-separated, or "all")'
+        required: true
+        default: 'all'
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+  id-token: write
+  packages: read
+
+env:
+  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+  CONTAINER_APPS_ENVIRONMENT: ${{ vars.CONTAINER_APPS_ENVIRONMENT }}
+  CONTAINER_REGISTRY: ghcr.io/${{ github.repository }}
+
+jobs:
+  # -------------------------------------------------------------------
+  # Determine which services to deploy
+  # -------------------------------------------------------------------
+  prepare:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set deployment matrix
+        id: set-matrix
+        run: |
+          ALL_SERVICES='["authentication-service","user-management-service","inventory-management-service","sales-management-service","payment-cart-service","point-service","coupon-service","ai-support-service","api-gateway-service"]'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            INPUT="${{ github.event.inputs.services }}"
+            if [ "$INPUT" = "all" ]; then
+              echo "matrix={\"service\":$ALL_SERVICES}" >> "$GITHUB_OUTPUT"
+            else
+              # Convert comma-separated input to JSON array
+              JSON=$(echo "$INPUT" | tr ',' '\n' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//' | jq -R . | jq -s .)
+              echo "matrix={\"service\":$JSON}" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "matrix={\"service\":$ALL_SERVICES}" >> "$GITHUB_OUTPUT"
+          fi
+
+  # -------------------------------------------------------------------
+  # Deploy each service to Azure Container Apps
+  # -------------------------------------------------------------------
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+      max-parallel: 3
+      fail-fast: false
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve image tag
+        id: image
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE="${{ env.CONTAINER_REGISTRY }}/${{ matrix.service }}:${SHORT_SHA}"
+          echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "full=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Container App name
+        id: app
+        run: |
+          # Map service directory names to Container App names
+          case "${{ matrix.service }}" in
+            authentication-service)        APP_NAME="auth-svc" ;;
+            user-management-service)       APP_NAME="user-svc" ;;
+            inventory-management-service)  APP_NAME="inventory-svc" ;;
+            sales-management-service)      APP_NAME="sales-svc" ;;
+            payment-cart-service)          APP_NAME="payment-svc" ;;
+            point-service)                 APP_NAME="point-svc" ;;
+            coupon-service)                APP_NAME="coupon-svc" ;;
+            ai-support-service)            APP_NAME="ai-svc" ;;
+            api-gateway-service)           APP_NAME="gateway-svc" ;;
+            *)                             APP_NAME="${{ matrix.service }}" ;;
+          esac
+          echo "name=${APP_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          containerAppName: ${{ steps.app.outputs.name }}
+          resourceGroup: ${{ env.AZURE_RESOURCE_GROUP }}
+          containerAppEnvironment: ${{ env.CONTAINER_APPS_ENVIRONMENT }}
+          imageToDeploy: ${{ steps.image.outputs.full }}
+          registryUrl: ghcr.io
+          registryUsername: ${{ github.actor }}
+          registryPassword: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify deployment health
+        run: |
+          APP_NAME="${{ steps.app.outputs.name }}"
+          RG="${{ env.AZURE_RESOURCE_GROUP }}"
+
+          echo "⏳ Waiting for $APP_NAME to become healthy..."
+          for i in $(seq 1 30); do
+            STATUS=$(az containerapp show \
+              --name "$APP_NAME" \
+              --resource-group "$RG" \
+              --query "properties.runningStatus" \
+              --output tsv 2>/dev/null || echo "Unknown")
+
+            if [ "$STATUS" = "Running" ]; then
+              echo "✅ $APP_NAME is running"
+              exit 0
+            fi
+            echo "  Attempt $i/30: status=$STATUS"
+            sleep 10
+          done
+
+          echo "❌ $APP_NAME did not become healthy within 5 minutes"
+          exit 1
+
+  # -------------------------------------------------------------------
+  # Post-deploy: Gateway smoke test
+  # -------------------------------------------------------------------
+  smoke-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always() && needs.deploy.result == 'success'
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Gateway health check
+        run: |
+          GATEWAY_URL="${{ vars.GATEWAY_EXTERNAL_URL }}"
+          if [ -z "$GATEWAY_URL" ]; then
+            echo "⚠️  GATEWAY_EXTERNAL_URL not set — skipping smoke test"
+            exit 0
+          fi
+
+          echo "🔍 Checking gateway health at $GATEWAY_URL ..."
+          for i in $(seq 1 12); do
+            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${GATEWAY_URL}/actuator/health" 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Gateway is healthy (HTTP 200)"
+              exit 0
+            fi
+            echo "  Attempt $i/12: HTTP $HTTP_CODE"
+            sleep 10
+          done
+
+          echo "❌ Gateway health check failed after 2 minutes"
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🚀 Deployment Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Item | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Environment** | ${{ github.event.inputs.environment || 'production' }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Trigger** | ${{ github.event_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Gateway URL** | ${{ vars.GATEWAY_EXTERNAL_URL }} |" >> "$GITHUB_STEP_SUMMARY"

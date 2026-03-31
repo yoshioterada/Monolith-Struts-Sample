@@ -29,7 +29,7 @@ services:
   db:
     image: postgres:9.2
     platform: linux/amd64
-    container_name: skishop-db
+    container_name: skishop-db-struts
     environment:
       POSTGRES_DB: skishop
       POSTGRES_USER: skishop

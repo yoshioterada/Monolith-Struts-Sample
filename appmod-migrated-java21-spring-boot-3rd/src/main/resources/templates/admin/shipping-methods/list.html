@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>配送方法管理</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">配送方法管理</h2>
+  <p><a th:href="@{/admin/shipping-methods/new}" class="btn">配送方法を追加</a></p>
+  <p th:if="${shippingMethods == null or shippingMethods.isEmpty()}">配送方法がありません。</p>
+  <div th:unless="${shippingMethods == null or shippingMethods.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th th:text="#{label.shippingCode}">Code</th>
+          <th th:text="#{label.shippingName}">Name</th>
+          <th th:text="#{label.shippingFee}">Fee</th>
+          <th th:text="#{label.shippingActive}">Active</th>
+          <th th:text="#{label.shippingSort}">Sort</th>
+          <th>編集</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="method : ${shippingMethods}">
+          <td th:text="${method.code}"></td>
+          <td th:text="${method.name}"></td>
+          <td th:text="${method.fee}"></td>
+          <td th:text="${method.active}"></td>
+          <td th:text="${method.sortOrder}"></td>
+          <td><a th:href="@{/admin/shipping-methods/{id}/edit(id=${method.id})}">編集</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

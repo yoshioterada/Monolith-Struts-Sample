@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>500 Internal Server Error</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <div class="card" style="text-align:center;padding:48px;">
+    <h2>500 - サーバーエラー</h2>
+    <p>サーバー内部エラーが発生しました。時間をおいてから再度お試しください。</p>
+    <p th:if="${errorId}">エラーID: <code th:text="${errorId}"></code></p>
+    <a th:href="@{/}" class="btn">ホームに戻る</a>
+  </div>
+</div>
+</body>
+</html>

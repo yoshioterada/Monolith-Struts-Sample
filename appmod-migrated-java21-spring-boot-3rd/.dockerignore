@@ -1,0 +1,14 @@
+target/
+.git/
+.github/
+*.md
+!README.md
+*.txt
+*.log
+.DS_Store
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+src/test/

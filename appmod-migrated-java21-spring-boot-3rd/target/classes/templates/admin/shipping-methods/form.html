@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>配送方法編集</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">配送方法編集</h2>
+  <div class="card">
+    <form th:action="@{/admin/shipping-methods}" method="post" th:object="${adminShippingMethodRequest}">
+      <input type="hidden" th:field="*{id}">
+      <table>
+        <tr>
+          <th><label for="code" th:text="#{label.shippingCode}">Code</label></th>
+          <td>
+            <input id="code" type="text" th:field="*{code}" size="12">
+            <span th:errors="*{code}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="name" th:text="#{label.shippingName}">Name</label></th>
+          <td>
+            <input id="name" type="text" th:field="*{name}" size="20">
+            <span th:errors="*{name}" style="color:red;"></span>
+          </td>
+        </tr>
+        <tr>
+          <th><label for="fee" th:text="#{label.shippingFee}">Fee</label></th>
+          <td><input id="fee" type="number" th:field="*{fee}" step="any" min="0" size="10"></td>
+        </tr>
+        <tr>
+          <th><label for="active" th:text="#{label.shippingActive}">Active</label></th>
+          <td><input id="active" type="checkbox" th:field="*{active}"></td>
+        </tr>
+        <tr>
+          <th><label for="sortOrder" th:text="#{label.shippingSort}">Sort Order</label></th>
+          <td><input id="sortOrder" type="number" th:field="*{sortOrder}" min="0" size="4"></td>
+        </tr>
+      </table>
+      <button type="submit">保存</button>
+    </form>
+  </div>
+  <p><a th:href="@{/admin/shipping-methods}">配送方法一覧へ戻る</a></p>
+</div>
+</body>
+</html>

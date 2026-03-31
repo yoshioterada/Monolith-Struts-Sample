@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<body>
+<div th:fragment="messages">
+  <div th:if="${successMessage}" class="messages" style="background:#e6f4ea;border-color:#81c99c;color:#1a6f35;">
+    <span th:text="${successMessage}"></span>
+  </div>
+  <div th:if="${errorMessage}" class="messages" style="background:#fce8e8;border-color:#f5a0a0;color:#b31412;">
+    <span th:text="${errorMessage}"></span>
+  </div>
+  <div th:if="${infoMessage}" class="messages">
+    <span th:text="${infoMessage}"></span>
+  </div>
+</div>
+</body>
+</html>

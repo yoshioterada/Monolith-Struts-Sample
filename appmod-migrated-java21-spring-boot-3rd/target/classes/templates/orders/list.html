@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>注文履歴</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">注文履歴</h2>
+  <p th:if="${orders == null or orders.isEmpty()}">注文履歴がありません。</p>
+  <div th:unless="${orders == null or orders.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>注文番号</th>
+          <th>状態</th>
+          <th>合計</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="order : ${orders}">
+          <td th:text="${order.orderNumber}"></td>
+          <td th:text="${order.status}"></td>
+          <td th:text="${order.totalAmount}"></td>
+          <td>
+            <a th:href="@{/orders/{id}(id=${order.id})}">詳細</a>
+            <form th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" style="display:inline">
+              <button type="submit" onclick="return confirm('キャンセルしますか？')">キャンセル</button>
+            </form>
+            <form th:action="@{/orders/{id}/return(id=${order.id})}" method="post" style="display:inline">
+              <button type="submit" onclick="return confirm('返品申請しますか？')">返品</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

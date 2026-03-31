@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>注文詳細</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">注文詳細</h2>
+  <div th:if="${order != null}" class="card">
+    <p>注文番号: <strong th:text="${order.orderNumber}"></strong></p>
+    <p>状態: <span th:text="${order.status}"></span></p>
+    <p>支払状態: <span th:text="${order.paymentStatus}"></span></p>
+    <p>合計金額: <strong th:text="${order.totalAmount}"></strong></p>
+  </div>
+  <div th:if="${order == null}" class="card">
+    <p>注文情報がありません。</p>
+    <a th:href="@{/orders}">注文一覧へ戻る</a>
+  </div>
+  <div th:if="${orderItems != null and !orderItems.isEmpty()}" class="card table-responsive">
+    <h3>商品明細</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>商品名</th>
+          <th>数量</th>
+          <th>小計</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${orderItems}">
+          <td th:text="${item.productName}"></td>
+          <td th:text="${item.quantity}"></td>
+          <td th:text="${item.subtotal}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

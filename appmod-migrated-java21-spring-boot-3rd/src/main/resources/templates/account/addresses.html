@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>住所帳</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">住所帳</h2>
+  <p th:if="${addresses == null or addresses.isEmpty()}">登録済み住所がありません。</p>
+  <div th:unless="${addresses == null or addresses.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th th:text="#{label.addressLabel}">Label</th>
+          <th th:text="#{label.recipientName}">Recipient Name</th>
+          <th>住所</th>
+          <th th:text="#{label.phone}">Phone</th>
+          <th th:text="#{label.isDefault}">Default</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="address : ${addresses}">
+          <td th:text="${address.label}"></td>
+          <td th:text="${address.recipientName}"></td>
+          <td>
+            <span th:text="${address.postalCode}"></span>
+            <span th:text="${address.prefecture}"></span>
+            <span th:text="${address.address1}"></span>
+            <span th:text="${address.address2}"></span>
+          </td>
+          <td th:text="${address.phone}"></td>
+          <td th:text="${address.default} ? #{label.yes} : '-'"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

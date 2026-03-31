@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>商品一覧</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <h2 class="page-title">商品一覧</h2>
+  <div class="card">
+    <form th:action="@{/products}" method="get" class="form-inline">
+      <label>キーワード
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="商品名やブランドで検索">
+      </label>
+      <label>カテゴリ
+        <select name="categoryId">
+          <option value="">すべて</option>
+          <option th:each="cat : ${categories}"
+                  th:value="${cat.id}"
+                  th:text="${cat.name}"
+                  th:selected="${cat.id == categoryId}"></option>
+        </select>
+      </label>
+      <label>並び替え
+        <select name="sort">
+          <option value="" th:selected="${sort == null or sort == ''}">&#x6307;定なし</option>
+          <option value="price_asc" th:selected="${sort == 'price_asc'}">価格(昇順)</option>
+          <option value="price_desc" th:selected="${sort == 'price_desc'}">価格(降順)</option>
+          <option value="name_asc" th:selected="${sort == 'name_asc'}">商品名</option>
+        </select>
+      </label>
+      <button type="submit">検索</button>
+    </form>
+  </div>
+
+  <div th:if="${products == null or products.isEmpty()}" class="card">商品が見つかりませんでした。</div>
+  <div th:unless="${products == null or products.isEmpty()}" class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>商品名</th>
+          <th>ブランド</th>
+          <th>カート</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="product : ${products}">
+          <td><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}"></a></td>
+          <td th:text="${product.brand}"></td>
+          <td>
+            <form th:action="@{/cart/items}" method="post">
+              <input type="hidden" name="productId" th:value="${product.id}">
+              <input type="number" name="quantity" value="1" min="1" size="3">
+              <button type="submit">追加</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>
