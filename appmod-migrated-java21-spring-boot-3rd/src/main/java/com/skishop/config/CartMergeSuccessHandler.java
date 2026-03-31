@@ -75,14 +75,14 @@ public class CartMergeSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
                                         Authentication authentication) throws IOException, ServletException {
         HttpSession session = request.getSession(false);
         if (session != null) {
-            String sessionId = (String) session.getAttribute("cartId");
-            if (sessionId != null) {
+            String cartId = (String) session.getAttribute("cartId");
+            if (cartId != null) {
                 String userEmail = authentication.getName();
                 try {
-                    cartService.mergeSessionCart(sessionId, userEmail);
+                    cartService.mergeCartById(cartId, userEmail);
                     session.removeAttribute("cartId");
                 } catch (Exception e) {
-                    log.warn("Cart merge failed for session={}", sessionId, e);
+                    log.warn("Cart merge failed for cartId={}", cartId, e);
                 }
             }
         }

@@ -291,6 +291,39 @@ public class CartService {
         }
     }
 
+    /**
+     * カート ID を指定してカートをユーザーにマージする。
+     *
+     * <p>{@link com.skishop.config.CartMergeSuccessHandler} から呼び出される。
+     * セッション属性に保存されたカート ID で匿名カートを特定し、
+     * ログインユーザーのカートにマージする。</p>
+     *
+     * @param cartId マージ元のカート ID
+     * @param userId マージ先のユーザー ID
+     */
+    @Transactional
+    public void mergeCartById(String cartId, String userId) {
+        var cartOpt = cartRepository.findById(cartId);
+        if (cartOpt.isEmpty()) {
+            return;
+        }
+        var cart = cartOpt.orElseThrow();
+        List<Cart> userCarts = cartRepository.findByUserIdAndStatus(userId, AppConstants.STATUS_ACTIVE);
+        if (userCarts.isEmpty()) {
+            cart.setUserId(userId);
+            cartRepository.save(cart);
+        } else {
+            var userCart = userCarts.getFirst();
+            List<CartItem> sessionItems = cartItemRepository.findByCartId(cart.getId());
+            for (CartItem sessionItem : sessionItems) {
+                addItem(userCart.getId(), sessionItem.getProductId(), sessionItem.getQuantity());
+            }
+            cartItemRepository.deleteByCartId(cart.getId());
+            cart.setStatus(AppConstants.CART_STATUS_MERGED);
+            cartRepository.save(cart);
+        }
+    }
+
     private BigDecimal resolveUnitPrice(String productId) {
         List<Price> prices = priceRepository.findByProductId(productId);
         if (prices.isEmpty()) {

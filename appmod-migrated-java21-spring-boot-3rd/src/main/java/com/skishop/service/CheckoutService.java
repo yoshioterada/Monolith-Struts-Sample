@@ -3,9 +3,11 @@ package com.skishop.service;
 import com.skishop.constant.AppConstants;
 import com.skishop.dto.request.OrderBuildRequest;
 import com.skishop.dto.request.PaymentInfo;
+import com.skishop.dto.response.CheckoutSummary;
 import com.skishop.dto.response.PaymentResult;
 import com.skishop.exception.BusinessException;
 import com.skishop.model.Address;
+import com.skishop.model.Cart;
 import com.skishop.model.CartItem;
 import com.skishop.model.Coupon;
 import com.skishop.model.Order;
@@ -85,6 +87,23 @@ public class CheckoutService {
     private final AddressService addressService;
     private final MailService mailService;
     private final UserService userService;
+
+    /**
+     * チェックアウト画面用のサマリー情報を準備する。
+     *
+     * @param userId    ログイン中のユーザー ID
+     * @param sessionId HTTP セッション ID
+     * @return チェックアウトサマリー
+     */
+    @Transactional(readOnly = true)
+    public CheckoutSummary prepareCheckoutSummary(String userId, String sessionId) {
+        Cart cart = cartService.getOrCreateCart(userId, sessionId);
+        List<CartItem> items = cartService.getItems(cart.getId());
+        BigDecimal subtotal = cartService.calculateSubtotal(items);
+        BigDecimal shippingFee = shippingService.calculateShippingFee(subtotal);
+        BigDecimal tax = taxService.calculateTax(subtotal);
+        return new CheckoutSummary(cart, items, subtotal, shippingFee, tax);
+    }
 
     /**
      * 注文確定処理を実行する。

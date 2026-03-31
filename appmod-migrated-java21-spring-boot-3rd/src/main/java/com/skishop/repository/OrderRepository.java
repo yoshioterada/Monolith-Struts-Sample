@@ -1,6 +1,7 @@
 package com.skishop.repository;
 
 import com.skishop.model.Order;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -48,4 +49,15 @@ public interface OrderRepository extends JpaRepository<Order, String> {
      * @return 該当注文を含む {@link Optional}。存在しない場合は {@link Optional#empty()}
      */
     Optional<Order> findByOrderNumber(String orderNumber);
+
+    /**
+     * 注文明細（items）を JOIN FETCH で同時取得する注文検索。
+     *
+     * <p>注文詳細画面など、注文と明細の両方が必要な場面で N+1 問題を回避するために使用する。</p>
+     *
+     * @param id 注文 ID
+     * @return 明細を含む注文の {@link Optional}。存在しない場合は {@link Optional#empty()}
+     */
+    @EntityGraph(attributePaths = {"items"})
+    Optional<Order> findWithItemsById(String id);
 }

@@ -93,7 +93,7 @@ class OrderServiceTest {
         var order = new Order();
         order.setId("order-1");
         order.setUserId("user-1");
-        when(orderRepository.findById("order-1")).thenReturn(Optional.of(order));
+        when(orderRepository.findWithItemsById("order-1")).thenReturn(Optional.of(order));
 
         // Act & Assert
         assertThatThrownBy(() -> orderService.findByIdAndUserId("order-1", "user-2"))

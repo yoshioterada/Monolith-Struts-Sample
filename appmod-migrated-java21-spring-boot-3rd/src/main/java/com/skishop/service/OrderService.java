@@ -122,7 +122,7 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public Order findByIdAndUserId(String orderId, String userId) {
-        var order = orderRepository.findById(orderId)
+        var order = orderRepository.findWithItemsById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
         if (!userId.equals(order.getUserId())) {
             throw new ResourceNotFoundException("Order", orderId);

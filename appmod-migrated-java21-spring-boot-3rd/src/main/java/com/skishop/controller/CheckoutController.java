@@ -2,15 +2,11 @@ package com.skishop.controller;
 
 import com.skishop.dto.request.CheckoutRequest;
 import com.skishop.dto.request.PaymentInfo;
+import com.skishop.dto.response.CheckoutSummary;
 import com.skishop.model.Cart;
-import com.skishop.model.CartItem;
-import com.skishop.model.Coupon;
 import com.skishop.model.Order;
 import com.skishop.service.CartService;
 import com.skishop.service.CheckoutService;
-import com.skishop.service.CouponService;
-import com.skishop.service.ShippingService;
-import com.skishop.service.TaxService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * チェックアウト（注文確定）関連の HTTP リクエストを処理するコントローラー。
@@ -41,9 +36,6 @@ import java.util.List;
  *
  * @see CheckoutService
  * @see CartService
- * @see CouponService
- * @see ShippingService
- * @see TaxService
  */
 @Controller
 @RequestMapping("/checkout")
@@ -53,9 +45,6 @@ public class CheckoutController {
 
     private final CartService cartService;
     private final CheckoutService checkoutService;
-    private final CouponService couponService;
-    private final ShippingService shippingService;
-    private final TaxService taxService;
 
     /**
      * チェックアウト画面（注文確認画面）を表示する。
@@ -75,25 +64,22 @@ public class CheckoutController {
     public String checkoutForm(@AuthenticationPrincipal UserDetails userDetails,
                                 HttpSession session,
                                 Model model) {
-        Cart cart = cartService.getOrCreateCart(userDetails.getUsername(), session.getId());
-        List<CartItem> items = cartService.getItems(cart.getId());
-        BigDecimal subtotal = cartService.calculateSubtotal(items);
-        BigDecimal shippingFee = shippingService.calculateShippingFee(subtotal);
-        BigDecimal tax = taxService.calculateTax(subtotal);
+        CheckoutSummary summary = checkoutService.prepareCheckoutSummary(
+                userDetails.getUsername(), session.getId());
         String couponCode = (String) session.getAttribute("couponCode");
         BigDecimal couponDiscount = (BigDecimal) session.getAttribute("couponDiscount");
         if (couponDiscount == null) {
             couponDiscount = BigDecimal.ZERO;
         }
-        model.addAttribute("cart", cart);
-        model.addAttribute("items", items);
-        model.addAttribute("subtotal", subtotal);
-        model.addAttribute("shippingFee", shippingFee);
-        model.addAttribute("tax", tax);
+        model.addAttribute("cart", summary.cart());
+        model.addAttribute("items", summary.items());
+        model.addAttribute("subtotal", summary.subtotal());
+        model.addAttribute("shippingFee", summary.shippingFee());
+        model.addAttribute("tax", summary.tax());
         model.addAttribute("couponCode", couponCode);
         model.addAttribute("couponDiscount", couponDiscount);
         model.addAttribute("checkoutRequest", new CheckoutRequest(
-                cart.getId(), couponCode, "", "", "", "", "", "", 0));
+                summary.cart().getId(), couponCode, "", "", "", "", "", "", 0));
         return "checkout/index";
     }
 
