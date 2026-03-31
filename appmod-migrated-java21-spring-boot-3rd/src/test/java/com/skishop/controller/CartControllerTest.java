@@ -44,7 +44,7 @@ class CartControllerTest {
     void should_displayCart_when_userLoggedIn() throws Exception {
         Cart cart = new Cart();
         cart.setId("cart-1");
-        when(cartService.getOrCreateCart(anyString(), anyString())).thenReturn(cart);
+        when(cartService.resolveCart(anyString(), anyString(), any())).thenReturn(cart);
         when(cartService.getItems("cart-1")).thenReturn(List.of());
         when(cartService.calculateSubtotal(any())).thenReturn(BigDecimal.ZERO);
 
@@ -60,7 +60,7 @@ class CartControllerTest {
     void should_redirectToCart_when_invalidCartItem() throws Exception {
         Cart cart = new Cart();
         cart.setId("cart-1");
-        when(cartService.getOrCreateCart(anyString(), anyString())).thenReturn(cart);
+        when(cartService.resolveCart(anyString(), anyString(), any())).thenReturn(cart);
 
         mockMvc.perform(post("/cart/items")
                         .param("productId", "")

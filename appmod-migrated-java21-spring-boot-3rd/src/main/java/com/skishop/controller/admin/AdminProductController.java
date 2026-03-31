@@ -3,6 +3,7 @@ package com.skishop.controller.admin;
 import com.skishop.constant.AppConstants;
 import com.skishop.dto.request.admin.AdminProductRequest;
 import com.skishop.model.Product;
+import com.skishop.service.AdminProductService;
 import com.skishop.service.CategoryService;
 import com.skishop.service.ProductService;
 import jakarta.validation.Valid;
@@ -44,6 +45,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminProductController {
 
     private final ProductService productService;
+    private final AdminProductService adminProductService;
     private final CategoryService categoryService;
 
     /**
@@ -104,7 +106,7 @@ public class AdminProductController {
             model.addAttribute("categories", categoryService.listAll());
             return "admin/products/form";
         }
-        Product product = productService.createProduct(request);
+        Product product = adminProductService.createProduct(request);
         redirectAttributes.addFlashAttribute("successMessage", "admin.product.created");
         return "redirect:/admin/products/" + product.getId();
     }
@@ -158,7 +160,7 @@ public class AdminProductController {
             model.addAttribute("categories", categoryService.listAll());
             return "admin/products/form";
         }
-        productService.updateProduct(id, request);
+        adminProductService.updateProduct(id, request);
         redirectAttributes.addFlashAttribute("successMessage", "admin.product.updated");
         return "redirect:/admin/products/" + id;
     }
@@ -177,7 +179,7 @@ public class AdminProductController {
      */
     @DeleteMapping("/{id}")
     public String deleteProduct(@PathVariable String id, RedirectAttributes redirectAttributes) {
-        productService.deactivateProduct(id);
+        adminProductService.deactivateProduct(id);
         redirectAttributes.addFlashAttribute("successMessage", "admin.product.deleted");
         return "redirect:/admin/products";
     }

@@ -1,7 +1,7 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY pom.xml .
-RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -q 2>/dev/null || true
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -q
 COPY src src
 RUN mvn package -DskipTests -q
 

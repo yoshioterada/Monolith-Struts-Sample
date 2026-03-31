@@ -5,7 +5,6 @@ import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.Inventory;
 import com.skishop.model.Price;
 import com.skishop.model.Product;
-import com.skishop.repository.CategoryRepository;
 import com.skishop.repository.InventoryRepository;
 import com.skishop.repository.PriceRepository;
 import com.skishop.repository.ProductRepository;
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Additional ProductService tests covering createProduct and updateProduct.
+ * AdminProductService tests covering createProduct, updateProduct, and deactivateProduct.
  */
 @ExtendWith(MockitoExtension.class)
 class ProductServiceAdminTest {
@@ -38,16 +37,13 @@ class ProductServiceAdminTest {
     private ProductRepository productRepository;
 
     @Mock
-    private CategoryRepository categoryRepository;
-
-    @Mock
     private InventoryRepository inventoryRepository;
 
     @Mock
     private PriceRepository priceRepository;
 
     @InjectMocks
-    private ProductService productService;
+    private AdminProductService adminProductService;
 
     private AdminProductRequest createRequest(int qty) {
         return new AdminProductRequest(null, "Ski Boots", "Brand", "Description",
@@ -64,7 +60,7 @@ class ProductServiceAdminTest {
         when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        var result = productService.createProduct(request);
+        var result = adminProductService.createProduct(request);
 
         // Assert
         assertThat(result.getId()).isNotNull();
@@ -84,7 +80,7 @@ class ProductServiceAdminTest {
         when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        productService.createProduct(request);
+        adminProductService.createProduct(request);
 
         // Assert
         var captor = ArgumentCaptor.forClass(Inventory.class);
@@ -115,7 +111,7 @@ class ProductServiceAdminTest {
                 "New desc", "cat-2", new BigDecimal("30000"), new BigDecimal("25000"), "ACTIVE", 20);
 
         // Act
-        var result = productService.updateProduct("P100", request);
+        var result = adminProductService.updateProduct("P100", request);
 
         // Assert
         assertThat(result.getName()).isEqualTo("Updated Name");
@@ -130,7 +126,62 @@ class ProductServiceAdminTest {
         when(productRepository.findById(anyString())).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> productService.updateProduct("NONE", createRequest(5)))
+        assertThatThrownBy(() -> adminProductService.updateProduct("NONE", createRequest(5)))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("商品を無効化した場合、ステータスがINACTIVEになる")
+    void should_setInactive_when_deactivateProduct() {
+        // Arrange
+        var product = new Product();
+        product.setId("P002");
+        product.setStatus("ACTIVE");
+        when(productRepository.findById("P002")).thenReturn(Optional.of(product));
+        when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
+        when(inventoryRepository.findByProductId("P002")).thenReturn(Optional.empty());
+
+        // Act
+        adminProductService.deactivateProduct("P002");
+
+        // Assert
+        var captor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo("INACTIVE");
+    }
+
+    @Test
+    @DisplayName("商品を無効化した際に在庫があれば在庫もゼロにする")
+    void should_zeroInventory_when_deactivateProductWithInventory() {
+        // Arrange
+        var product = new Product();
+        product.setId("P003");
+        product.setStatus("ACTIVE");
+        var inventory = new Inventory();
+        inventory.setQuantity(10);
+        when(productRepository.findById("P003")).thenReturn(Optional.of(product));
+        when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
+        when(inventoryRepository.findByProductId("P003")).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Act
+        adminProductService.deactivateProduct("P003");
+
+        // Assert
+        var captor = ArgumentCaptor.forClass(Inventory.class);
+        verify(inventoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getQuantity()).isEqualTo(0);
+        assertThat(captor.getValue().getStatus()).isEqualTo("OUT_OF_STOCK");
+    }
+
+    @Test
+    @DisplayName("存在しない商品を無効化した場合、ResourceNotFoundExceptionをスローする")
+    void should_throwException_when_deactivateNonExistentProduct() {
+        // Arrange
+        when(productRepository.findById(anyString())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> adminProductService.deactivateProduct("NONEXISTENT"))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

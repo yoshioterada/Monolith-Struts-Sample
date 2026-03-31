@@ -199,16 +199,12 @@ public class CartController {
     }
 
     private Cart resolveCart(UserDetails userDetails, HttpSession session) {
-        if (userDetails != null) {
-            return cartService.getOrCreateCart(userDetails.getUsername(), session.getId());
-        }
-        String sessionId = session.getId();
+        String userId = userDetails != null ? userDetails.getUsername() : null;
         String cartId = (String) session.getAttribute("cartId");
-        if (cartId == null) {
-            Cart cart = cartService.createCart(null, sessionId);
+        Cart cart = cartService.resolveCart(userId, session.getId(), cartId);
+        if (userDetails == null && cartId == null) {
             session.setAttribute("cartId", cart.getId());
-            return cart;
         }
-        return cartService.getCart(cartId);
+        return cart;
     }
 }

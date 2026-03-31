@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -87,10 +86,8 @@ public class OrderService {
     @Transactional
     public Order createOrder(Order order, List<OrderItem> orderItems) {
         var savedOrder = orderRepository.save(order);
-        for (OrderItem item : orderItems) {
-            item.setOrder(savedOrder);
-            orderItemRepository.save(item);
-        }
+        orderItems.forEach(item -> item.setOrder(savedOrder));
+        orderItemRepository.saveAll(orderItems);
         return savedOrder;
     }
 
@@ -218,17 +215,20 @@ public class OrderService {
      */
     @Transactional
     public void recordReturn(String orderId, List<OrderItem> items) {
-        for (OrderItem item : items) {
-            var ret = new Return();
-            ret.setId(UUID.randomUUID().toString());
-            ret.setOrderId(orderId);
-            ret.setOrderItemId(item.getId());
-            ret.setReason("return");
-            ret.setQuantity(item.getQuantity());
-            ret.setRefundAmount(item.getSubtotal());
-            ret.setStatus(AppConstants.RETURN_STATUS_REQUESTED);
-            returnRepository.save(ret);
-        }
+        List<Return> returns = items.stream()
+                .map(item -> {
+                    var ret = new Return();
+                    ret.setId(UUID.randomUUID().toString());
+                    ret.setOrderId(orderId);
+                    ret.setOrderItemId(item.getId());
+                    ret.setReason("return");
+                    ret.setQuantity(item.getQuantity());
+                    ret.setRefundAmount(item.getSubtotal());
+                    ret.setStatus(AppConstants.RETURN_STATUS_REQUESTED);
+                    return ret;
+                })
+                .toList();
+        returnRepository.saveAll(returns);
     }
 
     /**
@@ -268,13 +268,13 @@ public class OrderService {
      * @return カートアイテムリスト（商品 ID と数量のみ設定）
      */
     public List<CartItem> toCartItems(List<OrderItem> items) {
-        List<CartItem> cartItems = new ArrayList<>();
-        for (OrderItem orderItem : items) {
-            var cartItem = new CartItem();
-            cartItem.setProductId(orderItem.getProductId());
-            cartItem.setQuantity(orderItem.getQuantity());
-            cartItems.add(cartItem);
-        }
-        return cartItems;
+        return items.stream()
+                .map(orderItem -> {
+                    var cartItem = new CartItem();
+                    cartItem.setProductId(orderItem.getProductId());
+                    cartItem.setQuantity(orderItem.getQuantity());
+                    return cartItem;
+                })
+                .toList();
     }
 }

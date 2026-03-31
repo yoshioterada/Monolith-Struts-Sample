@@ -77,6 +77,28 @@ public class CartService {
     }
 
     /**
+     * ユーザー情報またはセッション情報からカートを解決する。
+     *
+     * <p>ログインユーザーの場合はユーザーカートを取得または作成し、
+     * 未ログインユーザーの場合は既存カート ID またはセッション ID でカートを解決する。</p>
+     *
+     * @param userId    ユーザー ID（未ログインの場合は {@code null}）
+     * @param sessionId HTTP セッション ID
+     * @param cartId    セッションに保存されたカート ID（未ログインで初回訪問の場合は {@code null}）
+     * @return 解決されたカート
+     */
+    @Transactional
+    public Cart resolveCart(String userId, String sessionId, String cartId) {
+        if (userId != null) {
+            return getOrCreateCart(userId, sessionId);
+        }
+        if (cartId != null) {
+            return getCart(cartId);
+        }
+        return createCart(null, sessionId);
+    }
+
+    /**
      * 既存のアクティブカートを取得するか、存在しない場合は新規作成する。
      *
      * <p>以下の優先順位でカートを検索する:</p>
@@ -99,10 +121,8 @@ public class CartService {
             }
         }
         if (sessionId != null) {
-            Cart existing = cartRepository.findBySessionId(sessionId).orElse(null);
-            if (existing != null) {
-                return existing;
-            }
+            return cartRepository.findBySessionId(sessionId)
+                    .orElseGet(() -> createCart(userId, sessionId));
         }
         return createCart(userId, sessionId);
     }
@@ -161,12 +181,13 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", cartId));
 
         List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        for (CartItem item : items) {
-            if (productId.equals(item.getProductId())) {
-                item.setQuantity(item.getQuantity() + quantity);
-                cartItemRepository.save(item);
-                return;
-            }
+        var existingItem = items.stream()
+                .filter(item -> productId.equals(item.getProductId()))
+                .findFirst();
+        if (existingItem.isPresent()) {
+            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+            cartItemRepository.save(existingItem.get());
+            return;
         }
 
         var item = new CartItem();

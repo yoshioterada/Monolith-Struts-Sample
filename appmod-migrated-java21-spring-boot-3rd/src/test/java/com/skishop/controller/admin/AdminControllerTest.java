@@ -3,6 +3,7 @@ package com.skishop.controller.admin;
 import com.skishop.config.TestSecurityConfig;
 import com.skishop.model.Order;
 import com.skishop.model.Product;
+import com.skishop.service.AdminProductService;
 import com.skishop.service.CategoryService;
 import com.skishop.service.CouponService;
 import com.skishop.service.CheckoutService;
@@ -38,6 +39,9 @@ class AdminControllerTest {
 
     @MockBean
     private ProductService productService;
+
+    @MockBean
+    private AdminProductService adminProductService;
 
     @MockBean
     private CategoryService categoryService;

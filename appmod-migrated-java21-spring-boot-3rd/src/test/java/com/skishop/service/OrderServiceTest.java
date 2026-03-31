@@ -47,7 +47,7 @@ class OrderServiceTest {
         var order = new Order();
         order.setId("order-1");
         when(orderRepository.save(any(Order.class))).thenReturn(order);
-        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(i -> i.getArgument(0));
+        when(orderItemRepository.saveAll(any())).thenAnswer(i -> i.getArgument(0));
 
         var item = new OrderItem();
         item.setId("item-1");
@@ -57,7 +57,7 @@ class OrderServiceTest {
 
         // Assert
         assertThat(result.getId()).isEqualTo("order-1");
-        verify(orderItemRepository).save(item);
+        verify(orderItemRepository).saveAll(any());
     }
 
     @Test
@@ -108,18 +108,20 @@ class OrderServiceTest {
         item.setId("item-1");
         item.setQuantity(2);
         item.setSubtotal(new BigDecimal("10000"));
-        when(returnRepository.save(any(Return.class))).thenAnswer(i -> i.getArgument(0));
+        when(returnRepository.saveAll(any())).thenAnswer(i -> i.getArgument(0));
 
         // Act
         orderService.recordReturn("order-1", List.of(item));
 
         // Assert
-        var captor = ArgumentCaptor.forClass(Return.class);
-        verify(returnRepository).save(captor.capture());
-        var ret = captor.getValue();
-        assertThat(ret.getOrderId()).isEqualTo("order-1");
-        assertThat(ret.getOrderItemId()).isEqualTo("item-1");
-        assertThat(ret.getStatus()).isEqualTo("REQUESTED");
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Return>> captor = ArgumentCaptor.forClass(List.class);
+        verify(returnRepository).saveAll(captor.capture());
+        var returns = captor.getValue();
+        assertThat(returns).hasSize(1);
+        assertThat(returns.getFirst().getOrderId()).isEqualTo("order-1");
+        assertThat(returns.getFirst().getOrderItemId()).isEqualTo("item-1");
+        assertThat(returns.getFirst().getStatus()).isEqualTo("REQUESTED");
     }
 
     @Test

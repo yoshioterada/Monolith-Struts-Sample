@@ -146,7 +146,7 @@ public class MailService {
             mail.setStatus(STATUS_SENT);
             mail.setSentAt(LocalDateTime.now());
             emailQueueRepository.save(mail);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Failed to send email id={}: {}", mail.getId(), e.getMessage(), e);
             int retryCount = mail.getRetryCount() + 1;
             mail.setRetryCount(retryCount);

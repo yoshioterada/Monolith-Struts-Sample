@@ -10,7 +10,7 @@
 <div layout:fragment="content">
   <h2 class="page-title" th:text="${adminProductRequest.id != null} ? '商品編集' : '商品追加'">商品編集</h2>
   <div class="card">
-    <form th:action="${adminProductRequest.id != null ? '/admin/products/' + adminProductRequest.id : '/admin/products'}"
+    <form th:action="${adminProductRequest.id != null} ? @{/admin/products/{id}(id=${adminProductRequest.id})} : @{/admin/products}"
           th:method="${adminProductRequest.id != null ? 'put' : 'post'}"
           th:object="${adminProductRequest}">
       <table>

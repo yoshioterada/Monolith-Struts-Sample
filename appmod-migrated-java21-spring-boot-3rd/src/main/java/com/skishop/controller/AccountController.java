@@ -8,7 +8,6 @@ import com.skishop.service.PointService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -127,11 +126,7 @@ public class AccountController {
     public String deleteAddress(@PathVariable String id,
                                  @AuthenticationPrincipal UserDetails userDetails,
                                  RedirectAttributes redirectAttributes) {
-        Address address = addressService.findById(id);
-        if (!address.getUserId().equals(userDetails.getUsername())) {
-            throw new AccessDeniedException("Address does not belong to current user");
-        }
-        addressService.delete(id);
+        addressService.deleteByIdAndUserId(id, userDetails.getUsername());
         redirectAttributes.addFlashAttribute("successMessage", "address.deleted");
         return "redirect:/account/addresses";
     }

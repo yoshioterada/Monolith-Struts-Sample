@@ -1,18 +1,11 @@
 package com.skishop.service;
 
 import com.skishop.exception.ResourceNotFoundException;
-import com.skishop.model.Category;
-import com.skishop.model.Inventory;
-import com.skishop.model.Price;
 import com.skishop.model.Product;
-import com.skishop.repository.CategoryRepository;
-import com.skishop.repository.InventoryRepository;
-import com.skishop.repository.PriceRepository;
 import com.skishop.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,15 +28,6 @@ class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
-
-    @Mock
-    private CategoryRepository categoryRepository;
-
-    @Mock
-    private InventoryRepository inventoryRepository;
-
-    @Mock
-    private PriceRepository priceRepository;
 
     @InjectMocks
     private ProductService productService;
@@ -134,60 +118,5 @@ class ProductServiceTest {
 
         // Assert
         assertThat(result).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("商品を無効化した場合、ステータスがINACTIVEになる")
-    void should_setInactive_when_deactivateProduct() {
-        // Arrange
-        var product = new Product();
-        product.setId("P002");
-        product.setStatus("ACTIVE");
-        when(productRepository.findById("P002")).thenReturn(Optional.of(product));
-        when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
-        when(inventoryRepository.findByProductId("P002")).thenReturn(Optional.empty());
-
-        // Act
-        productService.deactivateProduct("P002");
-
-        // Assert
-        var captor = ArgumentCaptor.forClass(Product.class);
-        verify(productRepository).save(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo("INACTIVE");
-    }
-
-    @Test
-    @DisplayName("商品を無効化した際に在庫があれば在庫もゼロにする")
-    void should_zeroInventory_when_deactivateProductWithInventory() {
-        // Arrange
-        var product = new Product();
-        product.setId("P003");
-        product.setStatus("ACTIVE");
-        var inventory = new Inventory();
-        inventory.setQuantity(10);
-        when(productRepository.findById("P003")).thenReturn(Optional.of(product));
-        when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
-        when(inventoryRepository.findByProductId("P003")).thenReturn(Optional.of(inventory));
-        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        productService.deactivateProduct("P003");
-
-        // Assert
-        var captor = ArgumentCaptor.forClass(Inventory.class);
-        verify(inventoryRepository).save(captor.capture());
-        assertThat(captor.getValue().getQuantity()).isEqualTo(0);
-        assertThat(captor.getValue().getStatus()).isEqualTo("OUT_OF_STOCK");
-    }
-
-    @Test
-    @DisplayName("存在しない商品を無効化した場合、ResourceNotFoundExceptionをスローする")
-    void should_throwException_when_deactivateNonExistentProduct() {
-        // Arrange
-        when(productRepository.findById(anyString())).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> productService.deactivateProduct("NONEXISTENT"))
-                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

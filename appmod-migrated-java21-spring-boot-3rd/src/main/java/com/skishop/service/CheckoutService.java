@@ -411,7 +411,7 @@ public class CheckoutService {
         try {
             var user = userService.findById(userId);
             mailService.enqueueOrderConfirmation(user.getEmail(), order);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Failed to enqueue order confirmation email: {}", e.getMessage(), e);
         }
     }

@@ -109,4 +109,23 @@ public class AddressService {
     public void delete(String addressId) {
         addressRepository.deleteById(addressId);
     }
+
+    /**
+     * 指定 ID の住所を、所有者を検証してから削除する（IDOR 防止）。
+     *
+     * @param addressId 削除対象の住所 ID
+     * @param userId    ログイン中のユーザー ID
+     * @throws ResourceNotFoundException 住所が存在しない場合
+     * @throws org.springframework.security.access.AccessDeniedException 住所が当該ユーザーのものでない場合
+     */
+    @Transactional
+    public void deleteByIdAndUserId(String addressId, String userId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address", addressId));
+        if (!address.getUserId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Address does not belong to current user");
+        }
+        addressRepository.deleteById(addressId);
+    }
 }
