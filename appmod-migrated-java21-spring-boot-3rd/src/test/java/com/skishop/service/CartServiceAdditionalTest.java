@@ -155,12 +155,15 @@ class CartServiceAdditionalTest {
     @DisplayName("数量を0に更新した場合、アイテムが削除される")
     void should_deleteItem_when_quantitySetToZero() {
         // Arrange
+        var cart = new Cart();
+        cart.setId("cart-1");
         var item = new CartItem();
         item.setId("item-1");
+        item.setCart(cart);
         when(cartItemRepository.findById("item-1")).thenReturn(Optional.of(item));
 
         // Act
-        cartService.updateItemQuantity("item-1", 0);
+        cartService.updateItemQuantity("item-1", 0, "cart-1");
 
         // Assert
         verify(cartItemRepository).delete(item);
@@ -170,14 +173,17 @@ class CartServiceAdditionalTest {
     @DisplayName("数量を正の値に更新した場合、アイテム数量が変更される")
     void should_updateQuantity_when_quantityPositive() {
         // Arrange
+        var cart = new Cart();
+        cart.setId("cart-1");
         var item = new CartItem();
         item.setId("item-2");
         item.setQuantity(3);
+        item.setCart(cart);
         when(cartItemRepository.findById("item-2")).thenReturn(Optional.of(item));
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        cartService.updateItemQuantity("item-2", 5);
+        cartService.updateItemQuantity("item-2", 5, "cart-1");
 
         // Assert
         var captor = ArgumentCaptor.forClass(CartItem.class);
@@ -188,13 +194,21 @@ class CartServiceAdditionalTest {
     // -------- removeItem --------
 
     @Test
-    @DisplayName("アイテムを削除した場合、deleteByIdが呼ばれる")
+    @DisplayName("アイテムを削除した場合、deleteが呼ばれる")
     void should_callDeleteById_when_removeItem() {
+        // Arrange
+        var cart = new Cart();
+        cart.setId("cart-1");
+        var item = new CartItem();
+        item.setId("item-3");
+        item.setCart(cart);
+        when(cartItemRepository.findById("item-3")).thenReturn(Optional.of(item));
+
         // Act
-        cartService.removeItem("item-3");
+        cartService.removeItem("item-3", "cart-1");
 
         // Assert
-        verify(cartItemRepository).deleteById("item-3");
+        verify(cartItemRepository).delete(item);
     }
 
     // -------- mergeSessionCart --------

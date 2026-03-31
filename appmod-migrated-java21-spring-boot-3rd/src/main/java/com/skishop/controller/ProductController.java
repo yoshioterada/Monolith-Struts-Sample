@@ -62,7 +62,7 @@ public class ProductController {
                         @RequestParam(required = false) String sort,
                         Model model) {
         Sort sortObj = resolveSort(sort);
-        PageRequest pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1), sortObj);
+        PageRequest pageable = PageRequest.of(Math.max(page - 1, 0), Math.min(Math.max(size, 1), 100), sortObj);
         Page<Product> products = productService.search(keyword, categoryId, pageable);
         model.addAttribute("products", products);
         model.addAttribute("keyword", keyword);

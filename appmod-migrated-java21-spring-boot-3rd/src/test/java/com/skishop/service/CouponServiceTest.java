@@ -51,27 +51,28 @@ class CouponServiceTest {
         var result = couponService.validateCoupon("SAVE10", new BigDecimal("10000"));
 
         // Assert
-        assertThat(result.getCode()).isEqualTo("SAVE10");
+        assertThat(result).isPresent();
+        assertThat(result.orElseThrow().getCode()).isEqualTo("SAVE10");
     }
 
     @Test
-    @DisplayName("空のクーポンコードの場合、nullを返す")
+    @DisplayName("空のクーポンコードの場合、空の Optional を返す")
     void should_returnNull_when_codeIsBlank() {
         // Act
         var result = couponService.validateCoupon("", new BigDecimal("10000"));
 
         // Assert
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
-    @DisplayName("nullのクーポンコードの場合、nullを返す")
+    @DisplayName("nullのクーポンコードの場合、空の Optional を返す")
     void should_returnNull_when_codeIsNull() {
         // Act
         var result = couponService.validateCoupon(null, new BigDecimal("10000"));
 
         // Assert
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test

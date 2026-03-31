@@ -1,5 +1,8 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
+import com.skishop.dto.request.OrderBuildRequest;
+import com.skishop.exception.BusinessException;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.CartItem;
 import com.skishop.model.Order;
@@ -10,12 +13,15 @@ import com.skishop.repository.OrderRepository;
 import com.skishop.repository.ReturnRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -51,6 +57,22 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ReturnRepository returnRepository;
+
+    private static final Set<String> ALLOWED_ORDER_STATUSES = Set.of(
+            AppConstants.ORDER_STATUS_CREATED,
+            AppConstants.ORDER_STATUS_CONFIRMED,
+            AppConstants.ORDER_STATUS_SHIPPED,
+            AppConstants.ORDER_STATUS_DELIVERED,
+            AppConstants.ORDER_STATUS_CANCELLED,
+            AppConstants.ORDER_STATUS_RETURNED
+    );
+
+    private static final Set<String> ALLOWED_PAYMENT_STATUSES = Set.of(
+            AppConstants.PAYMENT_STATUS_AUTHORIZED,
+            AppConstants.PAYMENT_STATUS_FAILED,
+            AppConstants.PAYMENT_STATUS_VOID,
+            AppConstants.PAYMENT_STATUS_REFUNDED
+    );
 
     /**
      * 注文と注文明細を永続化する。
@@ -118,7 +140,7 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public List<Order> listByUserId(String userId) {
-        return orderRepository.findByUserId(userId);
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     /**
@@ -131,9 +153,9 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public List<Order> listAll(int limit) {
-        return orderRepository.findAll().stream()
-                .limit(limit)
-                .toList();
+        return orderRepository.findAll(
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt")))
+                .getContent();
     }
 
     /**
@@ -158,6 +180,9 @@ public class OrderService {
      */
     @Transactional
     public void updateStatus(String orderId, String status) {
+        if (!ALLOWED_ORDER_STATUSES.contains(status)) {
+            throw new BusinessException("Invalid order status: " + status);
+        }
         var order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
         order.setStatus(status);
@@ -173,6 +198,9 @@ public class OrderService {
      */
     @Transactional
     public void updatePaymentStatus(String orderId, String paymentStatus) {
+        if (!ALLOWED_PAYMENT_STATUSES.contains(paymentStatus)) {
+            throw new BusinessException("Invalid payment status: " + paymentStatus);
+        }
         var order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
         order.setPaymentStatus(paymentStatus);
@@ -198,7 +226,7 @@ public class OrderService {
             ret.setReason("return");
             ret.setQuantity(item.getQuantity());
             ret.setRefundAmount(item.getSubtotal());
-            ret.setStatus("REQUESTED");
+            ret.setStatus(AppConstants.RETURN_STATUS_REQUESTED);
             returnRepository.save(ret);
         }
     }
@@ -210,35 +238,23 @@ public class OrderService {
      * 各金額フィールドを設定した注文オブジェクトを返す。
      * ステータスは {@code CREATED}、決済ステータスは {@code AUTHORIZED} に初期設定される。</p>
      *
-     * @param orderId        注文 ID（UUID）
-     * @param orderNumber    注文番号（{@code ORD-} プレフィックス + タイムスタンプ）
-     * @param userId         ユーザー ID
-     * @param subtotal       小計金額
-     * @param tax            消費税額
-     * @param shippingFee    配送料
-     * @param discountAmount 割引額（クーポン適用分）
-     * @param totalAmount    合計金額（税込み・送料込み・割引後）
-     * @param couponCode     使用されたクーポンコード（未使用の場合は {@code null}）
-     * @param usedPoints     使用されたポイント数
+     * @param request 注文構築リクエスト（{@link OrderBuildRequest}）
      * @return 構築済みの注文エンティティ（未保存）
      */
-    public Order buildOrder(String orderId, String orderNumber, String userId,
-                            BigDecimal subtotal, BigDecimal tax, BigDecimal shippingFee,
-                            BigDecimal discountAmount, BigDecimal totalAmount,
-                            String couponCode, int usedPoints) {
+    public Order buildOrder(OrderBuildRequest request) {
         var order = new Order();
-        order.setId(orderId);
-        order.setOrderNumber(orderNumber);
-        order.setUserId(userId);
-        order.setStatus("CREATED");
-        order.setPaymentStatus("AUTHORIZED");
-        order.setSubtotal(subtotal);
-        order.setTax(tax);
-        order.setShippingFee(shippingFee);
-        order.setDiscountAmount(discountAmount);
-        order.setTotalAmount(totalAmount);
-        order.setCouponCode(couponCode);
-        order.setUsedPoints(usedPoints);
+        order.setId(request.orderId());
+        order.setOrderNumber(request.orderNumber());
+        order.setUserId(request.userId());
+        order.setStatus(AppConstants.ORDER_STATUS_CREATED);
+        order.setPaymentStatus(AppConstants.PAYMENT_STATUS_AUTHORIZED);
+        order.setSubtotal(request.subtotal());
+        order.setTax(request.tax());
+        order.setShippingFee(request.shippingFee());
+        order.setDiscountAmount(request.discountAmount());
+        order.setTotalAmount(request.totalAmount());
+        order.setCouponCode(request.couponCode());
+        order.setUsedPoints(request.usedPoints());
         return order;
     }
 

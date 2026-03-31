@@ -1,12 +1,15 @@
 INSERT INTO roles(id, name) VALUES
   ('r-admin', 'ADMIN'),
-  ('r-user', 'USER');
+  ('r-user', 'USER')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO users(id, email, username, password_hash, salt, status, role, created_at, updated_at) VALUES
-  ('u-1', 'user@example.com', 'demo', 'hash', 'salt', 'ACTIVE', 'USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('u-1', 'user@example.com', 'demo', 'hash', 'salt', 'ACTIVE', 'USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO categories(id, name, parent_id) VALUES
-  ('c-1', 'Ski', NULL);
+  ('c-1', 'Ski', NULL)
+ON CONFLICT (id) DO NOTHING;
 
 -- Additional categories
 INSERT INTO categories(id, name, parent_id) VALUES
@@ -15,10 +18,12 @@ INSERT INTO categories(id, name, parent_id) VALUES
   ('c-helmet', 'Helmet', NULL),
   ('c-glove', 'Glove', NULL),
   ('c-pole', 'Pole', NULL),
-  ('c-wax', 'Wax', NULL);
+  ('c-wax', 'Wax', NULL)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO products(id, name, brand, description, category_id, sku, status, created_at, updated_at) VALUES
-  ('P001', 'Ski A', 'BrandX', 'Entry ski', 'c-1', 'SKU-001', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('P001', 'Ski A', 'BrandX', 'Entry ski', 'c-1', 'SKU-001', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 -- Sample products (20 each per category)
 INSERT INTO products(id, name, brand, description, category_id, sku, status, created_at, updated_at) VALUES
@@ -174,10 +179,12 @@ INSERT INTO products(id, name, brand, description, category_id, sku, status, cre
   ('PWX017', 'Briko-Maplus BP1 Med -5/+5℃', 'Briko-Maplus', '中級オールラウンド', 'c-wax', 'WAX-017', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('PWX018', 'OneBall Jay Fluoro-Free All Temp', 'OneBall', '初級オールラウンド', 'c-wax', 'WAX-018', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   ('PWX019', 'Swix F4 Universal Glidewax', 'Swix', '初級リキッド', 'c-wax', 'WAX-019', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  ('PWX020', 'TOKO Express Pocket Warm', 'TOKO', '初級リキッド高温', 'c-wax', 'WAX-020', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('PWX020', 'TOKO Express Pocket Warm', 'TOKO', '初級リキッド高温', 'c-wax', 'WAX-020', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO prices(id, product_id, regular_price, sale_price, currency_code, sale_start_date, sale_end_date) VALUES
-  ('price-1', 'P001', 50000, NULL, 'JPY', NULL, NULL);
+  ('price-1', 'P001', 50000, NULL, 'JPY', NULL, NULL)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO prices(id, product_id, regular_price, sale_price, currency_code, sale_start_date, sale_end_date) VALUES
   -- Skis
@@ -326,10 +333,12 @@ INSERT INTO prices(id, product_id, regular_price, sale_price, currency_code, sal
   ('price-PWX017', 'PWX017', 2000, NULL, 'JPY', NULL, NULL),
   ('price-PWX018', 'PWX018', 1600, NULL, 'JPY', NULL, NULL),
   ('price-PWX019', 'PWX019', 1600, NULL, 'JPY', NULL, NULL),
-  ('price-PWX020', 'PWX020', 1600, NULL, 'JPY', NULL, NULL);
+  ('price-PWX020', 'PWX020', 1600, NULL, 'JPY', NULL, NULL)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO inventory(id, product_id, quantity, reserved_quantity, status) VALUES
-  ('inv-1', 'P001', 10, 0, 'AVAILABLE');
+  ('inv-1', 'P001', 10, 0, 'AVAILABLE')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO inventory(id, product_id, quantity, reserved_quantity, status) VALUES
   -- Skis
@@ -478,52 +487,69 @@ INSERT INTO inventory(id, product_id, quantity, reserved_quantity, status) VALUE
   ('inv-PWX017', 'PWX017', 50, 0, 'AVAILABLE'),
   ('inv-PWX018', 'PWX018', 50, 0, 'AVAILABLE'),
   ('inv-PWX019', 'PWX019', 50, 0, 'AVAILABLE'),
-  ('inv-PWX020', 'PWX020', 50, 0, 'AVAILABLE');
+  ('inv-PWX020', 'PWX020', 50, 0, 'AVAILABLE')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO carts(id, user_id, session_id, status, expires_at) VALUES
-  ('cart-1', 'u-1', 'session-1', 'ACTIVE', CURRENT_TIMESTAMP);
+  ('cart-1', 'u-1', 'session-1', 'ACTIVE', CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO cart_items(id, cart_id, product_id, quantity, unit_price) VALUES
-  ('cart-item-1', 'cart-1', 'P001', 1, 50000);
-
-INSERT INTO payments(id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at) VALUES
-  ('pay-1', 'order-1', 'cart-1', 55800, 'JPY', 'AUTHORIZED', 'PAY-0001', CURRENT_TIMESTAMP);
+  ('cart-item-1', 'cart-1', 'P001', 1, 50000)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO orders(id, order_number, user_id, status, payment_status, subtotal, tax, shipping_fee, discount_amount, total_amount, coupon_code, used_points, created_at, updated_at) VALUES
-  ('order-1', 'ORD-0001', 'u-1', 'CREATED', 'AUTHORIZED', 50000, 5000, 800, 0, 55800, NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('order-1', 'ORD-0001', 'u-1', 'CREATED', 'AUTHORIZED', 50000, 5000, 800, 0, 55800, NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO order_items(id, order_id, product_id, product_name, sku, unit_price, quantity, subtotal) VALUES
-  ('order-item-1', 'order-1', 'P001', 'Ski A', 'SKU-001', 50000, 1, 50000);
+  ('order-item-1', 'order-1', 'P001', 'Ski A', 'SKU-001', 50000, 1, 50000)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO payments(id, order_id, cart_id, amount, currency, status, payment_intent_id, created_at) VALUES
+  ('pay-1', 'order-1', 'cart-1', 55800, 'JPY', 'AUTHORIZED', 'PAY-0001', CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO shipments(id, order_id, carrier, tracking_number, status, shipped_at, delivered_at) VALUES
-  ('ship-1', 'order-1', 'Yamato', 'TRK-001', 'PENDING', NULL, NULL);
+  ('ship-1', 'order-1', 'Yamato', 'TRK-001', 'PENDING', NULL, NULL)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO returns(id, order_id, order_item_id, reason, quantity, refund_amount, status) VALUES
-  ('return-1', 'order-1', 'order-item-1', 'size', 1, 50000, 'REQUESTED');
+  ('return-1', 'order-1', 'order-item-1', 'size', 1, 50000, 'REQUESTED')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO order_shipping(id, order_id, recipient_name, postal_code, prefecture, address1, address2, phone, shipping_method_code, shipping_fee, requested_delivery_date) VALUES
-  ('os-1', 'order-1', '山田 太郎', '160-0022', '東京都', '新宿区新宿1-1-1', 'マンション101', '0312345678', 'STANDARD', 800, NULL);
+  ('os-1', 'order-1', '山田 太郎', '160-0022', '東京都', '新宿区新宿1-1-1', 'マンション101', '0312345678', 'STANDARD', 800, NULL)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO point_accounts(id, user_id, balance, lifetime_earned, lifetime_redeemed) VALUES
-  ('pa-1', 'u-1', 100, 100, 0);
+  ('pa-1', 'u-1', 100, 100, 0)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO point_transactions(id, user_id, type, amount, reference_id, description, expires_at, is_expired, created_at) VALUES
-  ('pt-1', 'u-1', 'EARN', 100, 'order-1', 'Initial points', CURRENT_TIMESTAMP, FALSE, CURRENT_TIMESTAMP);
+  ('pt-1', 'u-1', 'EARN', 100, 'order-1', 'Initial points', CURRENT_TIMESTAMP, FALSE, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO campaigns(id, name, description, type, start_date, end_date, is_active, rules_json) VALUES
-  ('camp-1', 'Winter', 'Winter campaign', 'SEASONAL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE, '{}');
+  ('camp-1', 'Winter', 'Winter campaign', 'SEASONAL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE, '{}')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO coupons(id, campaign_id, code, coupon_type, discount_value, discount_type, minimum_amount, maximum_discount, usage_limit, used_count, is_active, expires_at) VALUES
-  ('coupon-1', 'camp-1', 'SAVE10', 'PERCENT', 10, 'ORDER', 1000, 5000, 100, 0, TRUE, CURRENT_TIMESTAMP);
+  ('coupon-1', 'camp-1', 'SAVE10', 'PERCENT', 10, 'ORDER', 1000, 5000, 100, 0, TRUE, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO user_addresses(id, user_id, label, recipient_name, postal_code, prefecture, address1, address2, phone, is_default, created_at, updated_at) VALUES
-  ('addr-1', 'u-1', '自宅', '山田 太郎', '160-0022', '東京都', '新宿区新宿1-1-1', 'マンション101', '0312345678', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('addr-1', 'u-1', '自宅', '山田 太郎', '160-0022', '東京都', '新宿区新宿1-1-1', 'マンション101', '0312345678', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO password_reset_tokens(id, user_id, token, expires_at, used_at) VALUES
-  ('prt-1', 'u-1', 'token-1', CURRENT_TIMESTAMP, NULL);
+  ('prt-1', 'u-1', 'token-1', CURRENT_TIMESTAMP, NULL)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO shipping_methods(id, code, name, fee, is_active, sort_order) VALUES
-  ('ship-std', 'STANDARD', 'Standard', 800, TRUE, 1);
+  ('ship-std', 'STANDARD', 'Standard', 800, TRUE, 1)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO email_queue(id, to_addr, subject, body, status, retry_count, last_error, scheduled_at, sent_at) VALUES
-  ('mail-1', 'user@example.com', 'Welcome', 'Body', 'PENDING', 0, NULL, CURRENT_TIMESTAMP, NULL);
+  ('mail-1', 'user@example.com', 'Welcome', 'Body', 'PENDING', 0, NULL, CURRENT_TIMESTAMP, NULL)
+ON CONFLICT (id) DO NOTHING;

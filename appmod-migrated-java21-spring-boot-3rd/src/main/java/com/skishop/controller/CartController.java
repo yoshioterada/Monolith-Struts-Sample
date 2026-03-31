@@ -128,12 +128,15 @@ public class CartController {
     public String updateItem(@PathVariable String itemId,
                               @Valid @ModelAttribute CartItemRequest request,
                               BindingResult result,
+                              @AuthenticationPrincipal UserDetails userDetails,
+                              HttpSession session,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage", "cart.item.invalid");
             return "redirect:/cart";
         }
-        cartService.updateItemQuantity(itemId, request.quantity());
+        Cart cart = resolveCart(userDetails, session);
+        cartService.updateItemQuantity(itemId, request.quantity(), cart.getId());
         return "redirect:/cart";
     }
 
@@ -150,8 +153,11 @@ public class CartController {
      */
     @DeleteMapping("/items/{itemId}")
     public String removeItem(@PathVariable String itemId,
+                              @AuthenticationPrincipal UserDetails userDetails,
+                              HttpSession session,
                               RedirectAttributes redirectAttributes) {
-        cartService.removeItem(itemId);
+        Cart cart = resolveCart(userDetails, session);
+        cartService.removeItem(itemId, cart.getId());
         redirectAttributes.addFlashAttribute("successMessage", "cart.item.removed");
         return "redirect:/cart";
     }
@@ -184,7 +190,7 @@ public class CartController {
         Cart cart = resolveCart(userDetails, session);
         List<CartItem> items = cartService.getItems(cart.getId());
         BigDecimal subtotal = cartService.calculateSubtotal(items);
-        Coupon coupon = couponService.validateCoupon(request.code(), subtotal);
+        Coupon coupon = couponService.validateCoupon(request.code(), subtotal).orElse(null);
         BigDecimal discount = couponService.calculateDiscount(coupon, subtotal);
         session.setAttribute("couponCode", request.code());
         session.setAttribute("couponDiscount", discount);

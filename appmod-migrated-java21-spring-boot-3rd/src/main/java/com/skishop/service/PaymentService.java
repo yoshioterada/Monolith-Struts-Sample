@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.dto.request.PaymentInfo;
 import com.skishop.dto.response.PaymentResult;
 import com.skishop.model.Payment;
@@ -66,7 +67,7 @@ public class PaymentService {
     @Transactional
     public PaymentResult authorize(PaymentInfo info, BigDecimal amount, String cartId, String orderId) {
         boolean success = isPaymentAllowed(info);
-        String status = success ? "AUTHORIZED" : "FAILED";
+        String status = success ? AppConstants.PAYMENT_STATUS_AUTHORIZED : AppConstants.PAYMENT_STATUS_FAILED;
 
         var payment = new Payment();
         payment.setId(UUID.randomUUID().toString());
@@ -96,7 +97,7 @@ public class PaymentService {
      */
     @Transactional
     public void voidPayment(String orderId) {
-        updateStatusByOrderId(orderId, "VOID");
+        updateStatusByOrderId(orderId, AppConstants.PAYMENT_STATUS_VOID);
     }
 
     /**
@@ -110,7 +111,7 @@ public class PaymentService {
      */
     @Transactional
     public void refundPayment(String orderId) {
-        updateStatusByOrderId(orderId, "REFUNDED");
+        updateStatusByOrderId(orderId, AppConstants.PAYMENT_STATUS_REFUNDED);
     }
 
     private void updateStatusByOrderId(String orderId, String status) {

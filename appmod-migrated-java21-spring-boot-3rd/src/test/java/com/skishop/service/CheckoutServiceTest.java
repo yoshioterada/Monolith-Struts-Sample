@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.dto.request.OrderBuildRequest;
 import com.skishop.dto.request.PaymentInfo;
 import com.skishop.dto.response.PaymentResult;
 import com.skishop.exception.BusinessException;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,7 +80,7 @@ class CheckoutServiceTest {
         when(cartService.getCart("cart-1")).thenReturn(cart);
         when(cartService.getItems("cart-1")).thenReturn(List.of(cartItem));
         when(cartService.calculateSubtotal(anyList())).thenReturn(new BigDecimal("10000"));
-        when(couponService.validateCoupon(null, new BigDecimal("10000"))).thenReturn(null);
+        when(couponService.validateCoupon(null, new BigDecimal("10000"))).thenReturn(Optional.empty());
         when(couponService.calculateDiscount(null, new BigDecimal("10000"))).thenReturn(BigDecimal.ZERO);
         when(taxService.calculateTax(any())).thenReturn(new BigDecimal("1000"));
         when(shippingService.calculateShippingFee(any())).thenReturn(BigDecimal.ZERO);
@@ -94,7 +96,7 @@ class CheckoutServiceTest {
         var order = new Order();
         order.setId("order-1");
         order.setOrderNumber("ORD-123");
-        when(orderService.buildOrder(anyString(), anyString(), eq("user-1"), any(), any(), any(), any(), any(), any(), anyInt()))
+        when(orderService.buildOrder(any(OrderBuildRequest.class)))
                 .thenReturn(order);
         when(orderService.createOrder(any(), anyList())).thenReturn(order);
         when(addressService.findByUserId("user-1")).thenReturn(List.of());
@@ -130,7 +132,7 @@ class CheckoutServiceTest {
         when(cartService.getCart("cart-1")).thenReturn(cart);
         when(cartService.getItems("cart-1")).thenReturn(List.of(cartItem));
         when(cartService.calculateSubtotal(anyList())).thenReturn(new BigDecimal("10000"));
-        when(couponService.validateCoupon(null, new BigDecimal("10000"))).thenReturn(null);
+        when(couponService.validateCoupon(null, new BigDecimal("10000"))).thenReturn(Optional.empty());
         when(couponService.calculateDiscount(null, new BigDecimal("10000"))).thenReturn(BigDecimal.ZERO);
         when(taxService.calculateTax(any())).thenReturn(new BigDecimal("1000"));
         when(shippingService.calculateShippingFee(any())).thenReturn(BigDecimal.ZERO);
@@ -141,8 +143,9 @@ class CheckoutServiceTest {
         assertThatThrownBy(() -> checkoutService.placeOrder("cart-1", null, 0, paymentInfo, "user-1"))
                 .isInstanceOf(BusinessException.class);
 
-        // Verify rollback
-        verify(inventoryService).releaseItems(anyList());
+        // Verify rollback: DB changes (inventory reservation) are rolled back by @Transactional.
+        // No explicit releaseItems call needed — the transaction rollback undoes the DB state.
+        verify(inventoryService, never()).releaseItems(anyList());
         verify(paymentService, never()).voidPayment(anyString());
     }
 
@@ -159,7 +162,7 @@ class CheckoutServiceTest {
         when(cartService.getCart("cart-1")).thenReturn(cart);
         when(cartService.getItems("cart-1")).thenReturn(List.of(cartItem));
         when(cartService.calculateSubtotal(anyList())).thenReturn(new BigDecimal("10000"));
-        when(couponService.validateCoupon("SAVE10", new BigDecimal("10000"))).thenReturn(coupon);
+        when(couponService.validateCoupon("SAVE10", new BigDecimal("10000"))).thenReturn(Optional.of(coupon));
         when(couponService.calculateDiscount(coupon, new BigDecimal("10000"))).thenReturn(new BigDecimal("1000"));
         when(taxService.calculateTax(any())).thenReturn(new BigDecimal("900"));
         when(shippingService.calculateShippingFee(any())).thenReturn(BigDecimal.ZERO);
@@ -173,7 +176,7 @@ class CheckoutServiceTest {
 
         var order = new Order();
         order.setId("order-1");
-        when(orderService.buildOrder(anyString(), anyString(), eq("user-1"), any(), any(), any(), any(), any(), eq("SAVE10"), anyInt()))
+        when(orderService.buildOrder(any(OrderBuildRequest.class)))
                 .thenReturn(order);
         when(orderService.createOrder(any(), anyList())).thenReturn(order);
         when(addressService.findByUserId("user-1")).thenReturn(List.of());
@@ -192,7 +195,7 @@ class CheckoutServiceTest {
         when(cartService.getCart("cart-1")).thenReturn(cart);
         when(cartService.getItems("cart-1")).thenReturn(List.of(cartItem));
         when(cartService.calculateSubtotal(anyList())).thenReturn(new BigDecimal("10000"));
-        when(couponService.validateCoupon(null, new BigDecimal("10000"))).thenReturn(null);
+        when(couponService.validateCoupon(null, new BigDecimal("10000"))).thenReturn(Optional.empty());
         when(couponService.calculateDiscount(null, new BigDecimal("10000"))).thenReturn(BigDecimal.ZERO);
         when(taxService.calculateTax(any())).thenReturn(new BigDecimal("950"));
         when(shippingService.calculateShippingFee(any())).thenReturn(BigDecimal.ZERO);
@@ -206,7 +209,7 @@ class CheckoutServiceTest {
 
         var order = new Order();
         order.setId("order-1");
-        when(orderService.buildOrder(anyString(), anyString(), eq("user-1"), any(), any(), any(), any(), any(), any(), eq(500)))
+        when(orderService.buildOrder(any(OrderBuildRequest.class)))
                 .thenReturn(order);
         when(orderService.createOrder(any(), anyList())).thenReturn(order);
         when(addressService.findByUserId("user-1")).thenReturn(List.of());

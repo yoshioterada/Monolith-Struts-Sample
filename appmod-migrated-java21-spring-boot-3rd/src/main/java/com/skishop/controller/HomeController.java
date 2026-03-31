@@ -1,5 +1,6 @@
 package com.skishop.controller;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class HomeController {
      */
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("featuredProducts", productService.findByStatus("ACTIVE"));
+        model.addAttribute("featuredProducts", productService.findByStatus(AppConstants.STATUS_ACTIVE));
         return "home";
     }
 }

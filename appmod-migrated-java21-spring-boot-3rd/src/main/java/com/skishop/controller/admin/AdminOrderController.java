@@ -2,6 +2,7 @@ package com.skishop.controller.admin;
 
 import com.skishop.model.Order;
 import com.skishop.model.OrderItem;
+import com.skishop.service.CheckoutService;
 import com.skishop.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import org.springframework.validation.annotation.Validated;
 import java.util.List;
 
 /**
@@ -32,11 +37,13 @@ import java.util.List;
 @Controller
 @RequestMapping("/admin/orders")
 @PreAuthorize("hasRole('ADMIN')")
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class AdminOrderController {
 
     private final OrderService orderService;
+    private final CheckoutService checkoutService;
 
     /**
      * 全注文の一覧画面を表示する。
@@ -91,10 +98,30 @@ public class AdminOrderController {
      */
     @PutMapping("/{id}/status")
     public String updateStatus(@PathVariable String id,
-                                @RequestParam String status,
+                                @RequestParam @NotBlank @Pattern(regexp = "CREATED|CONFIRMED|SHIPPED|DELIVERED|CANCELLED|RETURNED") String status,
                                 RedirectAttributes redirectAttributes) {
         orderService.updateStatus(id, status);
         redirectAttributes.addFlashAttribute("successMessage", "admin.order.statusUpdated");
+        return "redirect:/admin/orders/" + id;
+    }
+
+    /**
+     * 注文を返金処理する。
+     *
+     * <p>{@code POST /admin/orders/{id}/refund} — 配達済み注文に対して返金処理を実行する。
+     * 在庫復元、クーポン取消、ポイント返還・取消、決済返金は {@link CheckoutService} に委任される。</p>
+     *
+     * <p>認可: {@code ADMIN} ロールのみ</p>
+     *
+     * @param id 返金対象の注文 ID（パスパラメータ、UUID 形式）
+     * @param redirectAttributes リダイレクト時のフラッシュ属性〃8fd4金完了メッセージ）
+     * @return {@code "redirect:/admin/orders/{id}"} 管理用注文詳細画面へリダイレクト
+     */
+    @PostMapping("/{id}/refund")
+    public String refund(@PathVariable String id,
+                          RedirectAttributes redirectAttributes) {
+        checkoutService.refundOrder(id);
+        redirectAttributes.addFlashAttribute("successMessage", "admin.order.refunded");
         return "redirect:/admin/orders/" + id;
     }
 }

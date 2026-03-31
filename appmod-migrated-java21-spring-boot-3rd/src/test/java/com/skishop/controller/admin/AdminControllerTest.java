@@ -5,6 +5,7 @@ import com.skishop.model.Order;
 import com.skishop.model.Product;
 import com.skishop.service.CategoryService;
 import com.skishop.service.CouponService;
+import com.skishop.service.CheckoutService;
 import com.skishop.service.OrderService;
 import com.skishop.service.ProductService;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +44,9 @@ class AdminControllerTest {
 
     @MockBean
     private OrderService orderService;
+
+    @MockBean
+    private CheckoutService checkoutService;
 
     @MockBean
     private CouponService couponService;

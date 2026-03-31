@@ -143,10 +143,11 @@ class OrderServiceTest {
     @DisplayName("buildOrderが正しいフィールドで注文を作成する")
     void should_buildOrder_when_called() {
         // Act
-        var order = orderService.buildOrder("id-1", "ORD-001", "user-1",
+        var request = new com.skishop.dto.request.OrderBuildRequest("id-1", "ORD-001", "user-1",
                 new BigDecimal("10000"), new BigDecimal("1000"),
                 new BigDecimal("800"), new BigDecimal("500"),
                 new BigDecimal("11300"), "SAVE10", 200);
+        var order = orderService.buildOrder(request);
 
         // Assert
         assertThat(order.getId()).isEqualTo("id-1");

@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.Cart;
 import com.skishop.model.CartItem;
@@ -92,15 +93,15 @@ public class CartService {
     @Transactional
     public Cart getOrCreateCart(String userId, String sessionId) {
         if (userId != null) {
-            List<Cart> activeCarts = cartRepository.findByUserIdAndStatus(userId, "ACTIVE");
+            List<Cart> activeCarts = cartRepository.findByUserIdAndStatus(userId, AppConstants.STATUS_ACTIVE);
             if (!activeCarts.isEmpty()) {
                 return activeCarts.getFirst();
             }
         }
         if (sessionId != null) {
-            var sessionCart = cartRepository.findBySessionId(sessionId);
-            if (sessionCart.isPresent()) {
-                return sessionCart.orElseThrow();
+            Cart existing = cartRepository.findBySessionId(sessionId).orElse(null);
+            if (existing != null) {
+                return existing;
             }
         }
         return createCart(userId, sessionId);
@@ -121,7 +122,7 @@ public class CartService {
         cart.setId(UUID.randomUUID().toString());
         cart.setUserId(userId);
         cart.setSessionId(sessionId);
-        cart.setStatus("ACTIVE");
+        cart.setStatus(AppConstants.STATUS_ACTIVE);
         cart.setExpiresAt(LocalDateTime.now().plusDays(30));
         return cartRepository.save(cart);
     }
@@ -187,9 +188,12 @@ public class CartService {
      * @throws ResourceNotFoundException 指定 ID のカートアイテムが存在しない場合
      */
     @Transactional
-    public void updateItemQuantity(String itemId, int quantity) {
+    public void updateItemQuantity(String itemId, int quantity, String cartId) {
         var item = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", itemId));
+        if (!cartId.equals(item.getCart().getId())) {
+            throw new ResourceNotFoundException("CartItem", itemId);
+        }
         if (quantity <= 0) {
             cartItemRepository.delete(item);
         } else {
@@ -204,8 +208,13 @@ public class CartService {
      * @param itemId 削除対象のカートアイテム ID
      */
     @Transactional
-    public void removeItem(String itemId) {
-        cartItemRepository.deleteById(itemId);
+    public void removeItem(String itemId, String cartId) {
+        var item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("CartItem", itemId));
+        if (!cartId.equals(item.getCart().getId())) {
+            throw new ResourceNotFoundException("CartItem", itemId);
+        }
+        cartItemRepository.delete(item);
     }
 
     /**
@@ -239,7 +248,7 @@ public class CartService {
         cartItemRepository.deleteByCartId(cartId);
         var cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", cartId));
-        cart.setStatus("CHECKED_OUT");
+        cart.setStatus(AppConstants.CART_STATUS_CHECKED_OUT);
         cartRepository.save(cart);
     }
 
@@ -266,7 +275,7 @@ public class CartService {
             return;
         }
         var cart = sessionCart.orElseThrow();
-        List<Cart> userCarts = cartRepository.findByUserIdAndStatus(userId, "ACTIVE");
+        List<Cart> userCarts = cartRepository.findByUserIdAndStatus(userId, AppConstants.STATUS_ACTIVE);
         if (userCarts.isEmpty()) {
             cart.setUserId(userId);
             cartRepository.save(cart);
@@ -277,7 +286,7 @@ public class CartService {
                 addItem(userCart.getId(), sessionItem.getProductId(), sessionItem.getQuantity());
             }
             cartItemRepository.deleteByCartId(cart.getId());
-            cart.setStatus("MERGED");
+            cart.setStatus(AppConstants.CART_STATUS_MERGED);
             cartRepository.save(cart);
         }
     }

@@ -1,5 +1,7 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
+import com.skishop.dto.request.OrderBuildRequest;
 import com.skishop.dto.request.PaymentInfo;
 import com.skishop.dto.response.PaymentResult;
 import com.skishop.exception.BusinessException;
@@ -12,6 +14,7 @@ import com.skishop.model.OrderShipping;
 import com.skishop.model.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,89 +123,46 @@ public class CheckoutService {
         // Step 1: Get cart and items (empty check)
         var cart = cartService.getCart(cartId);
         List<CartItem> items = cartService.getItems(cartId);
-        if (items == null || items.isEmpty()) {
+        if (items.isEmpty()) {
             throw new BusinessException("Cart is empty",
                     "redirect:/cart", "error.cart.empty");
-        }
-
-        // Step 2: Calculate subtotal
-        BigDecimal subtotal = cartService.calculateSubtotal(items);
-
-        // Step 3: Validate coupon and calculate discount
-        Coupon coupon = couponService.validateCoupon(couponCode, subtotal);
-        BigDecimal discount = couponService.calculateDiscount(coupon, subtotal);
-        BigDecimal discounted = subtotal.subtract(discount);
-        if (discounted.compareTo(BigDecimal.ZERO) < 0) {
-            discounted = BigDecimal.ZERO;
         }
 
         String orderId = UUID.randomUUID().toString();
         String orderNumber = "ORD-" + System.currentTimeMillis();
 
-        // Step 4: Redeem points (if applicable)
-        int redeemPoints = 0;
-        if (userId != null) {
-            redeemPoints = normalizePoints(usePoints, discounted);
-            if (redeemPoints > 0) {
-                pointService.redeemPoints(userId, redeemPoints, orderId);
-            }
-        }
+        // Steps 2-5: Calculate amounts (subtotal, discount, points, tax, shipping)
+        var amounts = calculateOrderAmounts(items, couponCode, usePoints, orderId, userId);
 
-        BigDecimal taxable = discounted.subtract(BigDecimal.valueOf(redeemPoints));
-        if (taxable.compareTo(BigDecimal.ZERO) < 0) {
-            taxable = BigDecimal.ZERO;
-        }
-
-        // Step 5: Calculate tax and shipping
-        BigDecimal tax = taxService.calculateTax(taxable);
-        BigDecimal shippingFee = shippingService.calculateShippingFee(taxable);
-        BigDecimal totalAmount = taxable.add(tax).add(shippingFee);
-
-        boolean inventoryReserved = false;
         PaymentResult paymentResult = null;
 
         try {
             // Step 6: Reserve inventory
             inventoryService.reserveItems(items);
-            inventoryReserved = true;
 
             // Step 7: Authorize payment
-            paymentResult = paymentService.authorize(paymentInfo, totalAmount, cartId, orderId);
+            paymentResult = paymentService.authorize(paymentInfo, amounts.totalAmount, cartId, orderId);
             if (!paymentResult.isSuccess()) {
                 throw new BusinessException("Payment failed",
                         "redirect:/checkout", "error.payment.failed");
             }
 
             // Step 8: Create order and order items
-            Order order = orderService.buildOrder(orderId, orderNumber, userId,
-                    subtotal, tax, shippingFee, discount, totalAmount,
-                    coupon != null ? coupon.getCode() : null, redeemPoints);
+            var buildRequest = new OrderBuildRequest(orderId, orderNumber, userId,
+                    amounts.subtotal, amounts.tax, amounts.shippingFee, amounts.discount, amounts.totalAmount,
+                    amounts.coupon != null ? amounts.coupon.getCode() : null, amounts.redeemPoints);
+            Order order = orderService.buildOrder(buildRequest);
             order.setPaymentStatus(paymentResult.status());
             List<OrderItem> orderItems = buildOrderItems(orderId, items);
             orderService.createOrder(order, orderItems);
 
-            // Step 9: Mark coupon used
-            couponService.markUsed(coupon, userId, orderId, discount);
-
-            // Step 10: Award points
-            pointService.awardPoints(userId, orderId, totalAmount);
-
-            // Step 11: Save shipping + clear cart + enqueue email
-            saveShipping(orderId, shippingFee, userId);
-            cartService.clearCart(cartId);
-            sendOrderConfirmation(order, userId);
+            // Steps 9-11: Post-payment processing
+            finalizeOrder(order, amounts, orderId, cartId, userId);
 
             return order;
         } catch (RuntimeException e) {
-            // Rollback compensating actions
             if (paymentResult != null && paymentResult.isSuccess()) {
                 paymentService.voidPayment(orderId);
-            }
-            if (inventoryReserved) {
-                inventoryService.releaseItems(items);
-            }
-            if (redeemPoints > 0) {
-                pointService.refundPoints(userId, redeemPoints, orderId);
             }
             throw e;
         }
@@ -231,24 +191,17 @@ public class CheckoutService {
     @Transactional
     public Order cancelOrder(String orderId, String userId) {
         var order = orderService.findByIdAndUserId(orderId, userId);
-        if (!"CREATED".equals(order.getStatus()) && !"CONFIRMED".equals(order.getStatus())) {
+        if (!AppConstants.ORDER_STATUS_CREATED.equals(order.getStatus()) && !AppConstants.ORDER_STATUS_CONFIRMED.equals(order.getStatus())) {
             throw new BusinessException("Order cannot be cancelled",
                     "redirect:/orders/" + orderId, "error.order.cancel.invalid");
         }
 
         List<OrderItem> items = orderService.listItems(orderId);
-        inventoryService.releaseItems(orderService.toCartItems(items));
-        couponService.releaseUsage(orderId);
-
-        if (order.getUsedPoints() > 0) {
-            pointService.refundPoints(order.getUserId(), order.getUsedPoints(), orderId);
-        }
-        int awarded = pointService.calculateAwardPoints(order.getTotalAmount());
-        pointService.revokePoints(order.getUserId(), awarded, orderId);
+        reverseOrderEffects(order, items);
 
         paymentService.voidPayment(orderId);
-        orderService.updateStatus(orderId, "CANCELLED");
-        orderService.updatePaymentStatus(orderId, "VOID");
+        orderService.updateStatus(orderId, AppConstants.ORDER_STATUS_CANCELLED);
+        orderService.updatePaymentStatus(orderId, AppConstants.PAYMENT_STATUS_VOID);
 
         return orderService.findById(orderId);
     }
@@ -277,27 +230,111 @@ public class CheckoutService {
     @Transactional
     public Order returnOrder(String orderId, String userId) {
         var order = orderService.findByIdAndUserId(orderId, userId);
-        if (!"DELIVERED".equals(order.getStatus())) {
+        if (!AppConstants.ORDER_STATUS_DELIVERED.equals(order.getStatus())) {
             throw new BusinessException("Order cannot be returned",
                     "redirect:/orders/" + orderId, "error.order.return.invalid");
         }
 
         List<OrderItem> items = orderService.listItems(orderId);
-        inventoryService.releaseItems(orderService.toCartItems(items));
-        couponService.releaseUsage(orderId);
-
-        if (order.getUsedPoints() > 0) {
-            pointService.refundPoints(order.getUserId(), order.getUsedPoints(), orderId);
-        }
-        int awarded = pointService.calculateAwardPoints(order.getTotalAmount());
-        pointService.revokePoints(order.getUserId(), awarded, orderId);
+        reverseOrderEffects(order, items);
 
         paymentService.refundPayment(orderId);
         orderService.recordReturn(orderId, items);
-        orderService.updateStatus(orderId, "RETURNED");
-        orderService.updatePaymentStatus(orderId, "REFUNDED");
+        orderService.updateStatus(orderId, AppConstants.ORDER_STATUS_RETURNED);
+        orderService.updatePaymentStatus(orderId, AppConstants.PAYMENT_STATUS_REFUNDED);
 
         return orderService.findById(orderId);
+    }
+
+    /**
+     * 管理者による返金処理を実行する（オーナーシップ検証なし）。
+     *
+     * <p>ステータスが {@code DELIVERED} の注文のみ返金可能。
+     * {@link #returnOrder} と同様の補償処理を実行するが、
+     * オーナーシップ検証をスキップするため管理者操作用。</p>
+     *
+     * @param orderId 返金対象の注文 ID
+     * @return 返金処理後の注文エンティティ（ステータス: {@code RETURNED}）
+     * @throws BusinessException          注文ステータスが返金不可の状態の場合
+     * @throws ResourceNotFoundException 注文が存在しない場合
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public Order refundOrder(String orderId) {
+        var order = orderService.findById(orderId);
+        if (!AppConstants.ORDER_STATUS_DELIVERED.equals(order.getStatus())) {
+            throw new BusinessException("Order cannot be refunded",
+                    "redirect:/admin/orders/" + orderId, "error.order.refund.invalid");
+        }
+
+        List<OrderItem> items = orderService.listItems(orderId);
+        reverseOrderEffects(order, items);
+
+        paymentService.refundPayment(orderId);
+        orderService.recordReturn(orderId, items);
+        orderService.updateStatus(orderId, AppConstants.ORDER_STATUS_RETURNED);
+        orderService.updatePaymentStatus(orderId, AppConstants.PAYMENT_STATUS_REFUNDED);
+
+        return orderService.findById(orderId);
+    }
+
+    private record OrderAmounts(
+            BigDecimal subtotal, BigDecimal discount, BigDecimal totalAmount,
+            BigDecimal tax, BigDecimal shippingFee,
+            Coupon coupon, int redeemPoints) {}
+
+    private OrderAmounts calculateOrderAmounts(List<CartItem> items, String couponCode,
+                                                int usePoints, String orderId, String userId) {
+        BigDecimal subtotal = cartService.calculateSubtotal(items);
+
+        Coupon coupon = couponService.validateCoupon(couponCode, subtotal).orElse(null);
+        BigDecimal discount = couponService.calculateDiscount(coupon, subtotal);
+        BigDecimal discounted = subtotal.subtract(discount);
+        if (discounted.compareTo(BigDecimal.ZERO) < 0) {
+            discounted = BigDecimal.ZERO;
+        }
+
+        int redeemPoints = 0;
+        if (userId != null) {
+            redeemPoints = normalizePoints(usePoints, discounted);
+            if (redeemPoints > 0) {
+                pointService.redeemPoints(userId, redeemPoints, orderId);
+            }
+        }
+
+        BigDecimal taxable = discounted.subtract(BigDecimal.valueOf(redeemPoints));
+        if (taxable.compareTo(BigDecimal.ZERO) < 0) {
+            taxable = BigDecimal.ZERO;
+        }
+
+        BigDecimal tax = taxService.calculateTax(taxable);
+        BigDecimal shippingFee = shippingService.calculateShippingFee(taxable);
+        BigDecimal totalAmount = taxable.add(tax).add(shippingFee);
+
+        return new OrderAmounts(subtotal, discount, totalAmount, tax, shippingFee, coupon, redeemPoints);
+    }
+
+    private void finalizeOrder(Order order, OrderAmounts amounts,
+                                String orderId, String cartId, String userId) {
+        couponService.markUsed(amounts.coupon, userId, orderId, amounts.discount);
+        pointService.awardPoints(userId, orderId, amounts.totalAmount);
+        saveShipping(orderId, amounts.shippingFee, userId);
+        cartService.clearCart(cartId);
+        sendOrderConfirmation(order, userId);
+    }
+
+    /**
+     * 注文の補償処理を実行する（在庫解放・クーポン取消・ポイント返還/取消）。
+     */
+    private void reverseOrderEffects(Order order, List<OrderItem> items) {
+        inventoryService.releaseItems(orderService.toCartItems(items));
+        couponService.releaseUsage(order.getId());
+
+        if (order.getUsedPoints() > 0) {
+            pointService.refundPoints(order.getUserId(), order.getUsedPoints(), order.getId());
+        }
+        int awarded = pointService.calculateAwardPoints(order.getTotalAmount());
+        pointService.revokePoints(order.getUserId(), awarded, order.getId());
     }
 
     private int normalizePoints(int usePoints, BigDecimal discountedAmount) {
@@ -311,17 +348,12 @@ public class CheckoutService {
     private List<OrderItem> buildOrderItems(String orderId, List<CartItem> items) {
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem cartItem : items) {
-            Product product = null;
-            try {
-                product = productService.findById(cartItem.getProductId());
-            } catch (Exception e) {
-                log.warn("Product not found for cart item: {}", cartItem.getProductId());
-            }
+            Product product = productService.findById(cartItem.getProductId());
             var item = new OrderItem();
             item.setId(UUID.randomUUID().toString());
             item.setProductId(cartItem.getProductId());
-            item.setProductName(product != null ? product.getName() : "");
-            item.setSku(product != null ? product.getSku() : null);
+            item.setProductName(product.getName());
+            item.setSku(product.getSku());
             item.setUnitPrice(cartItem.getUnitPrice());
             item.setQuantity(cartItem.getQuantity());
             item.setSubtotal(cartItem.getUnitPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));

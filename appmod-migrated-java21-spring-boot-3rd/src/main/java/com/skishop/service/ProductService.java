@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.dto.request.admin.AdminProductRequest;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.Inventory;
@@ -51,8 +52,8 @@ import java.util.UUID;
 @Slf4j
 public class ProductService {
 
-    private static final String STATUS_INACTIVE = "INACTIVE";
-    private static final String STATUS_OUT_OF_STOCK = "OUT_OF_STOCK";
+    private static final String STATUS_INACTIVE = AppConstants.STATUS_INACTIVE;
+    private static final String STATUS_OUT_OF_STOCK = AppConstants.INVENTORY_STATUS_OUT_OF_STOCK;
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -96,10 +97,11 @@ public class ProductService {
         Specification<Product> spec = Specification.where(null);
 
         if (keyword != null && !keyword.isBlank()) {
+            String escapedKeyword = "%" + escapeLikePattern(keyword.toLowerCase()) + "%";
             spec = spec.and((root, query, cb) ->
                     cb.or(
-                            cb.like(cb.lower(root.get("name")), "%" + keyword.toLowerCase() + "%"),
-                            cb.like(cb.lower(root.get("description")), "%" + keyword.toLowerCase() + "%")
+                            cb.like(cb.lower(root.get("name")), escapedKeyword, '\\'),
+                            cb.like(cb.lower(root.get("description")), escapedKeyword, '\\')
                     )
             );
         }
@@ -152,6 +154,7 @@ public class ProductService {
      * @param productId 無効化対象の商品 ID
      * @throws ResourceNotFoundException 指定 ID の商品が存在しない場合
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void deactivateProduct(String productId) {
         var product = productRepository.findById(productId)
@@ -227,7 +230,7 @@ public class ProductService {
         }
         inventoryRepository.findByProductId(productId).ifPresent(inventory -> {
             inventory.setQuantity(request.inventoryQty());
-            inventory.setStatus(request.inventoryQty() > 0 ? "IN_STOCK" : STATUS_OUT_OF_STOCK);
+            inventory.setStatus(request.inventoryQty() > 0 ? AppConstants.INVENTORY_STATUS_IN_STOCK : STATUS_OUT_OF_STOCK);
             inventoryRepository.save(inventory);
         });
         return productRepository.save(product);
@@ -239,5 +242,12 @@ public class ProductService {
         product.setDescription(request.description());
         product.setCategoryId(request.categoryId());
         product.setStatus(request.status());
+    }
+
+    /**
+     * LIKE パターン内の特殊文字（%, _, \）をエスケープする。
+     */
+    private static String escapeLikePattern(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

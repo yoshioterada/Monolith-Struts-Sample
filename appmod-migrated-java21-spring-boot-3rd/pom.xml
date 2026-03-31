@@ -23,6 +23,7 @@
         <springdoc-openapi.version>2.3.0</springdoc-openapi.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <thymeleaf-layout-dialect.version>3.3.0</thymeleaf-layout-dialect.version>
+        <!-- flyway-database-postgresql はFlyway 10.x から分離。Spring Boot 3.2 (Flyway 9.x) では flyway-core に内包 -->
     </properties>
 
     <dependencies>
@@ -195,9 +196,9 @@
                                     <element>BUNDLE</element>
                                     <limits>
                                         <limit>
-                                            <counter>LINE</counter>
+                                            <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.70</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -208,7 +209,7 @@
                                     </includes>
                                     <limits>
                                         <limit>
-                                            <counter>LINE</counter>
+                                            <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.80</minimum>
                                         </limit>
@@ -221,9 +222,9 @@
                                     </includes>
                                     <limits>
                                         <limit>
-                                            <counter>LINE</counter>
+                                            <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.70</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

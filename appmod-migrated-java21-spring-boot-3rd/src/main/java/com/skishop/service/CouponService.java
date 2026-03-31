@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.exception.BusinessException;
 import com.skishop.model.Coupon;
 import com.skishop.model.CouponUsage;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -70,13 +72,13 @@ public class CouponService {
      *
      * @param code     クーポンコード（{@code null} または空白の場合はクーポン未使用とみなす）
      * @param subtotal 注文小計金額（最低注文金額の判定に使用）
-     * @return 有効なクーポンエンティティ、またはクーポン未使用の場合は {@code null}
+     * @return 有効なクーポンを含む {@link Optional}、またはクーポン未使用の場合は {@link Optional#empty()}
      * @throws BusinessException クーポンが無効、使用上限到達、最低金額未満、期限切れの場合
      */
     @Transactional(readOnly = true)
-    public Coupon validateCoupon(String code, BigDecimal subtotal) {
+    public Optional<Coupon> validateCoupon(String code, BigDecimal subtotal) {
         if (code == null || code.isBlank()) {
-            return null;
+            return Optional.empty();
         }
         var coupon = couponRepository.findByCode(code)
                 .orElseThrow(() -> new BusinessException("Coupon not found",
@@ -98,7 +100,7 @@ public class CouponService {
             throw new BusinessException("Coupon expired",
                     "redirect:/cart", "error.coupon.expired");
         }
-        return coupon;
+        return Optional.of(coupon);
     }
 
     /**
@@ -134,7 +136,7 @@ public class CouponService {
             return BigDecimal.ZERO;
         }
         BigDecimal discount;
-        if ("PERCENT".equalsIgnoreCase(coupon.getCouponType())) {
+        if (AppConstants.COUPON_TYPE_PERCENT.equalsIgnoreCase(coupon.getCouponType())) {
             discount = amount.multiply(coupon.getDiscountValue())
                     .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
         } else {

@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.exception.BusinessException;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.SecurityLog;
@@ -42,8 +43,8 @@ public class AuthService {
     private static final String EVENT_LOGIN_SUCCESS = "LOGIN_SUCCESS";
     private static final String EVENT_LOGIN_FAILURE = "LOGIN_FAILURE";
     private static final String EVENT_ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
-    private static final String STATUS_LOCKED = "LOCKED";
-    private static final String STATUS_ACTIVE = "ACTIVE";
+    private static final String STATUS_LOCKED = AppConstants.STATUS_LOCKED;
+    private static final String STATUS_ACTIVE = AppConstants.STATUS_ACTIVE;
 
     private final UserRepository userRepository;
     private final SecurityLogRepository securityLogRepository;

@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.exception.BusinessException;
 import com.skishop.model.PointAccount;
 import com.skishop.model.PointTransaction;
@@ -87,7 +88,7 @@ public class PointService {
         account.setLifetimeEarned(account.getLifetimeEarned() + points);
         pointAccountRepository.save(account);
 
-        var transaction = buildTransaction(userId, "EARN", points, referenceId, "Order points");
+        var transaction = buildTransaction(userId, AppConstants.POINT_TX_EARN, points, referenceId, "Order points");
         transaction.setExpiresAt(LocalDateTime.now().plusDays(365));
         pointTransactionRepository.save(transaction);
         return points;
@@ -121,7 +122,7 @@ public class PointService {
         account.setLifetimeRedeemed(account.getLifetimeRedeemed() + points);
         pointAccountRepository.save(account);
 
-        var transaction = buildTransaction(userId, "REDEEM", -points, referenceId, "Redeem points");
+        var transaction = buildTransaction(userId, AppConstants.POINT_TX_REDEEM, -points, referenceId, "Redeem points");
         pointTransactionRepository.save(transaction);
     }
 
@@ -145,7 +146,7 @@ public class PointService {
         account.setBalance(account.getBalance() + points);
         pointAccountRepository.save(account);
 
-        var transaction = buildTransaction(userId, "REFUND", points, referenceId, "Refund points");
+        var transaction = buildTransaction(userId, AppConstants.POINT_TX_REFUND, points, referenceId, "Refund points");
         pointTransactionRepository.save(transaction);
     }
 
@@ -169,7 +170,7 @@ public class PointService {
         account.setBalance(Math.max(account.getBalance() - points, 0));
         pointAccountRepository.save(account);
 
-        var transaction = buildTransaction(userId, "REVOKE", -points, referenceId, "Revoke points");
+        var transaction = buildTransaction(userId, AppConstants.POINT_TX_REVOKE, -points, referenceId, "Revoke points");
         pointTransactionRepository.save(transaction);
     }
 
@@ -222,22 +223,12 @@ public class PointService {
         if (userId == null) {
             return;
         }
-        var transactions = pointTransactionRepository.findByUserId(userId);
         LocalDateTime now = LocalDateTime.now();
-        int expiredAmount = 0;
-        for (PointTransaction tx : transactions) {
-            if (!tx.isExpired() && tx.getExpiresAt() != null && tx.getExpiresAt().isBefore(now)) {
-                tx.setExpired(true);
-                pointTransactionRepository.save(tx);
-                if (tx.getAmount() > 0) {
-                    expiredAmount += tx.getAmount();
-                }
-            }
-        }
+        int expiredAmount = pointTransactionRepository.sumExpiredAmount(userId, now);
+        pointTransactionRepository.bulkExpire(userId, now);
         if (expiredAmount > 0) {
-            final int totalExpired = expiredAmount;
             pointAccountRepository.findByUserId(userId).ifPresent(account -> {
-                account.setBalance(Math.max(account.getBalance() - totalExpired, 0));
+                account.setBalance(Math.max(account.getBalance() - expiredAmount, 0));
                 pointAccountRepository.save(account);
             });
         }

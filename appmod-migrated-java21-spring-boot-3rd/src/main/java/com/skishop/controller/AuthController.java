@@ -5,13 +5,11 @@ import com.skishop.dto.request.PasswordResetRequest;
 import com.skishop.dto.request.RegisterRequest;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.PasswordResetToken;
-import com.skishop.model.User;
 import com.skishop.service.MailService;
 import com.skishop.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.UUID;
 
 /**
  * 認証関連の HTTP リクエストを処理するコントローラー。
@@ -45,7 +42,6 @@ public class AuthController {
 
     private final UserService userService;
     private final MailService mailService;
-    private final PasswordEncoder passwordEncoder;
 
     /**
      * ログイン画面を表示する。
@@ -103,15 +99,7 @@ public class AuthController {
             result.rejectValue("passwordConfirm", "validation.passwordConfirm.mismatch");
             return "auth/register";
         }
-        User user = new User();
-        user.setId(UUID.randomUUID().toString());
-        user.setEmail(request.email());
-        user.setUsername(request.username());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setSalt("");
-        user.setStatus("active");
-        user.setRole("USER");
-        userService.register(user);
+        userService.registerNewUser(request.email(), request.username(), request.password());
         redirectAttributes.addFlashAttribute("successMessage", "registration.success");
         return "redirect:/auth/login";
     }
@@ -207,7 +195,7 @@ public class AuthController {
             return "auth/password-reset";
         }
         PasswordResetToken resetToken = userService.validateResetToken(request.token());
-        userService.updatePassword(resetToken.getUserId(), passwordEncoder.encode(request.password()), "");
+        userService.updatePassword(resetToken.getUserId(), request.password());
         userService.consumeResetToken(request.token());
         redirectAttributes.addFlashAttribute("successMessage", "passwordReset.success");
         return "redirect:/auth/login";

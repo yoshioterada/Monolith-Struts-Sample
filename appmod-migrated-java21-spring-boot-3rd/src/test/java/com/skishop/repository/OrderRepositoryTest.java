@@ -51,7 +51,7 @@ class OrderRepositoryTest {
         entityManager.persistAndFlush(order3);
 
         // Act
-        List<Order> user1Orders = orderRepository.findByUserId("user-1");
+        List<Order> user1Orders = orderRepository.findByUserIdOrderByCreatedAtDesc("user-1");
 
         // Assert
         assertThat(user1Orders).hasSize(2);
@@ -93,7 +93,7 @@ class OrderRepositoryTest {
         entityManager.persistAndFlush(order);
 
         // Act
-        List<Order> result = orderRepository.findByUserId("user-999");
+        List<Order> result = orderRepository.findByUserIdOrderByCreatedAtDesc("user-999");
 
         // Assert
         assertThat(result).isEmpty();

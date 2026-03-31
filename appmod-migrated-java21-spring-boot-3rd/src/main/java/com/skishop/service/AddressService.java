@@ -1,6 +1,7 @@
 package com.skishop.service;
 
 import com.skishop.exception.ResourceNotFoundException;
+import com.skishop.dto.request.AddressRequest;
 import com.skishop.model.Address;
 import com.skishop.repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,29 @@ public class AddressService {
     public Address findById(String addressId) {
         return addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", addressId));
+    }
+
+    /**
+     * リクエスト DTO からエンティティを組み立てて保存する。
+     *
+     * @param request 住所リクエスト DTO
+     * @param userId  住所の所有者ユーザー ID
+     * @return 保存後の住所エンティティ
+     */
+    @Transactional
+    public Address createFromRequest(AddressRequest request, String userId) {
+        var address = new Address();
+        address.setId(UUID.randomUUID().toString());
+        address.setUserId(userId);
+        address.setLabel(request.label());
+        address.setRecipientName(request.recipientName());
+        address.setPostalCode(request.postalCode());
+        address.setPrefecture(request.prefecture());
+        address.setAddress1(request.address1());
+        address.setAddress2(request.address2());
+        address.setPhone(request.phone());
+        address.setDefault(request.isDefault());
+        return addressRepository.save(address);
     }
 
     /**

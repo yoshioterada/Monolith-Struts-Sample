@@ -1,5 +1,6 @@
 package com.skishop.dto.request;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
@@ -29,5 +30,6 @@ public record CartItemRequest(
     String productId,
 
     @Positive(message = "{validation.quantity.positive}")
+    @Max(value = 999, message = "{validation.quantity.max}")
     int quantity
 ) {}

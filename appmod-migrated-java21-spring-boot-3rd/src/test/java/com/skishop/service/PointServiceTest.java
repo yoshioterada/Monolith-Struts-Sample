@@ -20,6 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -87,7 +88,8 @@ class PointServiceTest {
         account.setUserId("user-1");
         account.setBalance(500);
         account.setLifetimeRedeemed(0);
-        when(pointTransactionRepository.findByUserId("user-1")).thenReturn(List.of());
+        when(pointTransactionRepository.sumExpiredAmount(eq("user-1"), any())).thenReturn(0);
+        when(pointTransactionRepository.bulkExpire(eq("user-1"), any())).thenReturn(0);
         when(pointAccountRepository.findByUserId("user-1")).thenReturn(Optional.of(account));
         when(pointAccountRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(pointTransactionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -108,7 +110,8 @@ class PointServiceTest {
         account.setId("acc-1");
         account.setUserId("user-1");
         account.setBalance(100);
-        when(pointTransactionRepository.findByUserId("user-1")).thenReturn(List.of());
+        when(pointTransactionRepository.sumExpiredAmount(eq("user-1"), any())).thenReturn(0);
+        when(pointTransactionRepository.bulkExpire(eq("user-1"), any())).thenReturn(0);
         when(pointAccountRepository.findByUserId("user-1")).thenReturn(Optional.of(account));
 
         // Act & Assert

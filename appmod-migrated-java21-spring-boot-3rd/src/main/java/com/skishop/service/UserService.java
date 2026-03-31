@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.PasswordResetToken;
 import com.skishop.model.User;
@@ -7,6 +8,7 @@ import com.skishop.repository.PasswordResetTokenRepository;
 import com.skishop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * ユーザー ID でユーザーを取得する。
@@ -98,11 +101,35 @@ public class UserService {
             user.setId(UUID.randomUUID().toString());
         }
         if (user.getStatus() == null) {
-            user.setStatus("ACTIVE");
+            user.setStatus(AppConstants.STATUS_ACTIVE);
         }
         if (user.getRole() == null) {
-            user.setRole("USER");
+            user.setRole(AppConstants.ROLE_USER);
         }
+        return userRepository.save(user);
+    }
+
+    /**
+     * メールアドレス・ユーザー名・パスワードから新規ユーザーを作成・登録する。
+     *
+     * <p>パスワードは BCrypt でエンコードしてから保存する。
+     * ステータスは {@code ACTIVE}、ロールは {@code USER} に設定される。</p>
+     *
+     * @param email       メールアドレス
+     * @param username    ユーザー名
+     * @param rawPassword 生パスワード（BCrypt エンコード前）
+     * @return 保存後のユーザーエンティティ
+     */
+    @Transactional
+    public User registerNewUser(String email, String username, String rawPassword) {
+        var user = new User();
+        user.setId(UUID.randomUUID().toString());
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setSalt("");
+        user.setStatus(AppConstants.STATUS_ACTIVE);
+        user.setRole(AppConstants.ROLE_USER);
         return userRepository.save(user);
     }
 
@@ -123,6 +150,18 @@ public class UserService {
         user.setPasswordHash(passwordHash);
         user.setSalt(salt);
         userRepository.save(user);
+    }
+
+    /**
+     * 生パスワードを BCrypt エンコードしてユーザーのパスワードを更新する。
+     *
+     * @param userId      更新対象のユーザー ID
+     * @param rawPassword 生パスワード
+     * @throws ResourceNotFoundException 指定 ID のユーザーが存在しない場合
+     */
+    @Transactional
+    public void updatePassword(String userId, String rawPassword) {
+        updatePassword(userId, passwordEncoder.encode(rawPassword), "");
     }
 
     /**

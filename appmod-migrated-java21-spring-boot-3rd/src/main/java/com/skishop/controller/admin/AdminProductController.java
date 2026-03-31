@@ -1,5 +1,6 @@
 package com.skishop.controller.admin;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.dto.request.admin.AdminProductRequest;
 import com.skishop.model.Product;
 import com.skishop.service.CategoryService;
@@ -74,7 +75,7 @@ public class AdminProductController {
     @GetMapping("/new")
     public String newProductForm(Model model) {
         model.addAttribute("adminProductRequest",
-                new AdminProductRequest(null, "", "", "", "", null, null, "ACTIVE", 0));
+                new AdminProductRequest(null, "", "", "", "", null, null, AppConstants.STATUS_ACTIVE, 0));
         model.addAttribute("categories", categoryService.listAll());
         return "admin/products/form";
     }

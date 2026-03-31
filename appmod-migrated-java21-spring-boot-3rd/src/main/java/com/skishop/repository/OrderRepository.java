@@ -36,7 +36,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
      * @param userId 検索対象のユーザー ID（null 不可）
      * @return 該当ユーザーの注文リスト。注文がない場合は空リスト
      */
-    List<Order> findByUserId(String userId);
+    List<Order> findByUserIdOrderByCreatedAtDesc(String userId);
 
     /**
      * 指定された注文番号で注文を検索する。

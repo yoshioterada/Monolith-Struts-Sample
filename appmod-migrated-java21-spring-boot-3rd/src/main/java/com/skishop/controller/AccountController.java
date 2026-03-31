@@ -8,6 +8,7 @@ import com.skishop.service.PointService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * アカウント関連の HTTP リクエストを処理するコントローラー。
@@ -107,18 +107,7 @@ public class AccountController {
         if (result.hasErrors()) {
             return "account/addresses";
         }
-        Address address = new Address();
-        address.setId(request.id() != null ? request.id() : UUID.randomUUID().toString());
-        address.setUserId(userDetails.getUsername());
-        address.setLabel(request.label());
-        address.setRecipientName(request.recipientName());
-        address.setPostalCode(request.postalCode());
-        address.setPrefecture(request.prefecture());
-        address.setAddress1(request.address1());
-        address.setAddress2(request.address2());
-        address.setPhone(request.phone());
-        address.setDefault(request.isDefault());
-        addressService.save(address);
+        addressService.createFromRequest(request, userDetails.getUsername());
         redirectAttributes.addFlashAttribute("successMessage", "address.saved");
         return "redirect:/account/addresses";
     }
@@ -136,7 +125,12 @@ public class AccountController {
      */
     @DeleteMapping("/addresses/{id}")
     public String deleteAddress(@PathVariable String id,
+                                 @AuthenticationPrincipal UserDetails userDetails,
                                  RedirectAttributes redirectAttributes) {
+        Address address = addressService.findById(id);
+        if (!address.getUserId().equals(userDetails.getUsername())) {
+            throw new AccessDeniedException("Address does not belong to current user");
+        }
         addressService.delete(id);
         redirectAttributes.addFlashAttribute("successMessage", "address.deleted");
         return "redirect:/account/addresses";

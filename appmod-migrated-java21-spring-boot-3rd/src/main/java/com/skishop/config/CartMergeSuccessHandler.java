@@ -82,7 +82,7 @@ public class CartMergeSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
                     cartService.mergeSessionCart(sessionId, userEmail);
                     session.removeAttribute("cartId");
                 } catch (Exception e) {
-                    log.warn("Cart merge failed for session={}", sessionId);
+                    log.warn("Cart merge failed for session={}", sessionId, e);
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.skishop.service;
 
+import com.skishop.constant.AppConstants;
 import com.skishop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,7 @@ public class CustomUserDetailsService implements UserDetailsService,
                 .username(user.getEmail())
                 .password(user.getPasswordHash())  // {sha256}hash$salt or {bcrypt}hash
                 .roles(user.getRole())
-                .accountLocked("LOCKED".equals(user.getStatus()))
+                .accountLocked(AppConstants.STATUS_LOCKED.equals(user.getStatus()))
                 .build();
     }
 
