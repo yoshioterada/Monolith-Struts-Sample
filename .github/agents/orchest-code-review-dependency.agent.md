@@ -1,5 +1,5 @@
 ---
-description: "Verify Maven dependency management, version control, prohibited dependencies, and license compliance in pom.xml. Use when: pom.xml dependency checks, prohibited dependency detection, SNAPSHOT exclusion, dependency version consistency. DO NOT use when: Java coding standards (→ csharp-standards-reviewer), security vulnerabilities (→ security-reviewer)"
+description: "Verify Maven dependency management, version control, prohibited dependencies, and license compliance in pom.xml. Use when: pom.xml dependency checks, prohibited dependency detection, SNAPSHOT exclusion, dependency version consistency. DO NOT use when: Java coding standards (→ java-standards-reviewer), security vulnerabilities (→ security-reviewer)"
 tools:
   - read
   - search
@@ -27,7 +27,7 @@ A single deprecated dependency can introduce a security hole, a single SNAPSHOT 
 
 | In Scope | Out of Scope |
 |---|---|
-| `pom.xml` dependency quality | Java coding standards (→ `csharp-standards-reviewer`) |
+| `pom.xml` dependency quality | Java coding standards (→ `java-standards-reviewer`) |
 | Prohibited dependency detection | Security vulnerabilities (→ `security-reviewer`) |
 | SNAPSHOT version exclusion | DI configuration (→ `config-di-reviewer`) |
 | Version consistency across modules | Resilience patterns (→ `resilience-reviewer`) |
@@ -92,10 +92,13 @@ Verify that required dependencies defined in AGENTS.md §8.1 are present (depend
 | **Security** | `spring-boot-starter-security` | compile | **High** |
 | **Validation** | `spring-boot-starter-validation` | compile | **High** |
 | **Template** | `spring-boot-starter-thymeleaf` | compile | **High** |
+| **Thymeleaf Security** | `org.thymeleaf.extras:thymeleaf-extras-springsecurity6` | compile | **High** |
+| **Thymeleaf Layout** | `nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect` | compile | **High** |
 | **Mail** | `spring-boot-starter-mail` | compile | **Medium** |
 | **Observability** | `spring-boot-starter-actuator` | compile | **High** |
 | **DB Migration** | `org.flywaydb:flyway-core` | compile | **High** |
 | **DB Migration** | `org.flywaydb:flyway-database-postgresql` | compile | **High** |
+| **Logging** | `net.logstash.logback:logstash-logback-encoder` | compile | **High** |
 | **Utility** | `org.projectlombok:lombok` | provided/annotationProcessor | **Medium** |
 | **DB Driver** | `org.postgresql:postgresql` | runtime | **High** |
 

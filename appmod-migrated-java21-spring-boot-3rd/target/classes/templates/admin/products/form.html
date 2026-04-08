@@ -18,7 +18,7 @@
           <th><label for="name" th:text="#{label.productName}">Product Name</label></th>
           <td>
             <input id="name" type="text" th:field="*{name}" size="40">
-            <span th:errors="*{name}" style="color:red;"></span>
+            <span th:errors="*{name}" class="text-error"></span>
           </td>
         </tr>
         <tr>
@@ -37,7 +37,7 @@
           <th><label for="regularPrice" th:text="#{label.productPrice}">Regular Price</label></th>
           <td>
             <input id="regularPrice" type="number" th:field="*{regularPrice}" step="any" min="0" size="10">
-            <span th:errors="*{regularPrice}" style="color:red;"></span>
+            <span th:errors="*{regularPrice}" class="text-error"></span>
           </td>
         </tr>
         <tr>

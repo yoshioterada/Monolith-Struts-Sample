@@ -47,6 +47,9 @@ public class CartItem {
     @Column(name = "product_id", nullable = false, length = 20)
     private String productId;
 
+    @Column(name = "product_name", length = 255)
+    private String productName;
+
     @Column(name = "quantity", nullable = false)
     private int quantity;
 

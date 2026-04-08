@@ -1,4 +1,13 @@
 FROM eclipse-temurin:21-jdk AS build
+
+# Maven インストール
+ARG MAVEN_VERSION=3.9.9
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+       | tar -xz -C /opt \
+    && ln -s /opt/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn \
+    && apt-get purge -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -q

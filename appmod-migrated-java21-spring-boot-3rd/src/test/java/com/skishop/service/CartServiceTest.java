@@ -7,6 +7,7 @@ import com.skishop.model.Price;
 import com.skishop.repository.CartItemRepository;
 import com.skishop.repository.CartRepository;
 import com.skishop.repository.PriceRepository;
+import com.skishop.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,9 @@ class CartServiceTest {
 
     @Mock
     private PriceRepository priceRepository;
+
+    @Mock
+    private ProductRepository productRepository;
 
     @InjectMocks
     private CartService cartService;

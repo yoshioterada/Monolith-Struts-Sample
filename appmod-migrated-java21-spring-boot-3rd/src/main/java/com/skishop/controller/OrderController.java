@@ -6,8 +6,8 @@ import com.skishop.service.CheckoutService;
 import com.skishop.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.skishop.security.SkiShopUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,8 +53,8 @@ public class OrderController {
      * @return {@code "orders/list"} 注文一覧画面のテンプレート名
      */
     @GetMapping
-    public String list(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        List<Order> orders = orderService.listByUserId(userDetails.getUsername());
+    public String list(@AuthenticationPrincipal SkiShopUserDetails userDetails, Model model) {
+        List<Order> orders = orderService.listByUserId(userDetails.getUserId());
         model.addAttribute("orders", orders);
         return "orders/list";
     }
@@ -74,9 +74,9 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public String detail(@PathVariable String id,
-                          @AuthenticationPrincipal UserDetails userDetails,
+                          @AuthenticationPrincipal SkiShopUserDetails userDetails,
                           Model model) {
-        Order order = orderService.findByIdAndUserId(id, userDetails.getUsername());
+        Order order = orderService.findByIdAndUserId(id, userDetails.getUserId());
         List<OrderItem> items = orderService.listItems(id);
         model.addAttribute("order", order);
         model.addAttribute("items", items);
@@ -98,9 +98,9 @@ public class OrderController {
      */
     @PostMapping("/{id}/cancel")
     public String cancel(@PathVariable String id,
-                          @AuthenticationPrincipal UserDetails userDetails,
+                          @AuthenticationPrincipal SkiShopUserDetails userDetails,
                           RedirectAttributes redirectAttributes) {
-        checkoutService.cancelOrder(id, userDetails.getUsername());
+        checkoutService.cancelOrder(id, userDetails.getUserId());
         redirectAttributes.addFlashAttribute("successMessage", "order.cancelled");
         return "redirect:/orders/" + id;
     }
@@ -120,9 +120,9 @@ public class OrderController {
      */
     @PostMapping("/{id}/return")
     public String returnOrder(@PathVariable String id,
-                               @AuthenticationPrincipal UserDetails userDetails,
+                               @AuthenticationPrincipal SkiShopUserDetails userDetails,
                                RedirectAttributes redirectAttributes) {
-        checkoutService.returnOrder(id, userDetails.getUsername());
+        checkoutService.returnOrder(id, userDetails.getUserId());
         redirectAttributes.addFlashAttribute("successMessage", "order.returned");
         return "redirect:/orders/" + id;
     }

@@ -17,14 +17,14 @@
           <th><label for="code" th:text="#{label.shippingCode}">Code</label></th>
           <td>
             <input id="code" type="text" th:field="*{code}" size="12">
-            <span th:errors="*{code}" style="color:red;"></span>
+            <span th:errors="*{code}" class="text-error"></span>
           </td>
         </tr>
         <tr>
           <th><label for="name" th:text="#{label.shippingName}">Name</label></th>
           <td>
             <input id="name" type="text" th:field="*{name}" size="20">
-            <span th:errors="*{name}" style="color:red;"></span>
+            <span th:errors="*{name}" class="text-error"></span>
           </td>
         </tr>
         <tr>

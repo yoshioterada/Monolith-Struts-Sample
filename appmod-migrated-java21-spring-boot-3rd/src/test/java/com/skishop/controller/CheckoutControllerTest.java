@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import com.skishop.security.WithSkiShopUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -45,7 +45,7 @@ class CheckoutControllerTest {
 
     @Test
     @DisplayName("チェックアウト画面を表示する（認証済みユーザー）")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_displayCheckoutPage_when_authenticated() throws Exception {
         // Arrange
         Cart cart = new Cart();
@@ -63,7 +63,7 @@ class CheckoutControllerTest {
 
     @Test
     @DisplayName("バリデーションエラーがある場合、チェックアウト画面にリダイレクトする")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_redirectToCheckout_when_validationErrors() throws Exception {
         // Act & Assert
         mockMvc.perform(post("/checkout")
@@ -75,7 +75,7 @@ class CheckoutControllerTest {
 
     @Test
     @DisplayName("正常な注文確定で注文詳細へリダイレクトする")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_redirectToOrderDetail_when_orderPlacedSuccessfully() throws Exception {
         // Arrange
         Cart cart = new Cart();

@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static com.skishop.security.TestUserFactory.skiShopUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -50,7 +50,7 @@ class AccountControllerTest {
         when(pointService.getAccount("user1")).thenReturn(account);
 
         mockMvc.perform(get("/account/points")
-                        .with(SecurityMockMvcRequestPostProcessors.user("user1").roles("USER")))
+                        .with(skiShopUser("user1")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("account/points"))
                 .andExpect(model().attributeExists("pointAccount"));
@@ -62,7 +62,7 @@ class AccountControllerTest {
         when(addressService.findByUserId("user1")).thenReturn(List.of(new Address()));
 
         mockMvc.perform(get("/account/addresses")
-                        .with(SecurityMockMvcRequestPostProcessors.user("user1").roles("USER")))
+                        .with(skiShopUser("user1")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("account/addresses"))
                 .andExpect(model().attributeExists("addresses", "addressRequest"));
@@ -74,7 +74,7 @@ class AccountControllerTest {
         when(addressService.findByUserId("user1")).thenReturn(List.of());
 
         mockMvc.perform(post("/account/addresses")
-                        .with(SecurityMockMvcRequestPostProcessors.user("user1").roles("USER"))
+                        .with(skiShopUser("user1"))
                         .param("label", "Home")
                         .param("recipientName", "Test User")
                         .param("postalCode", "100-0001")
@@ -96,7 +96,7 @@ class AccountControllerTest {
         when(addressService.findByUserId("user1")).thenReturn(List.of());
 
         mockMvc.perform(post("/account/addresses")
-                        .with(SecurityMockMvcRequestPostProcessors.user("user1").roles("USER"))
+                        .with(skiShopUser("user1"))
                         .param("label", "")
                         .param("recipientName", "")
                         .param("postalCode", "")
@@ -114,7 +114,7 @@ class AccountControllerTest {
     @DisplayName("住所を削除するとリダイレクトされる")
     void should_redirectToAddresses_when_addressDeleted() throws Exception {
         mockMvc.perform(delete("/account/addresses/addr-1")
-                        .with(SecurityMockMvcRequestPostProcessors.user("user1").roles("USER")))
+                        .with(skiShopUser("user1")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/account/addresses"))
                 .andExpect(flash().attributeExists("successMessage"));

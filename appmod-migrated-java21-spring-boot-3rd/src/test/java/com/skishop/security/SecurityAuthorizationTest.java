@@ -77,7 +77,7 @@ class SecurityAuthorizationTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    @WithSkiShopUser
     @DisplayName("USERロールが/ordersにアクセスした場合、200が返る")
     void should_return200_when_userAccessesOrders() throws Exception {
         mockMvc.perform(get("/orders"))

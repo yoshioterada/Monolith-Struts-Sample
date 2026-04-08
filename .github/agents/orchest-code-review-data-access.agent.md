@@ -45,7 +45,7 @@ N+1 queries, implicit lazy-loading triggers, missing `@Transactional(readOnly = 
 | **`@Table(name = "snake_case")`** | Table name is specified via `@Table` annotation in snake_case plural form | **High** |
 | **`@Column(name = "snake_case")`** | All fields have `@Column` annotation with snake_case column name | **High** |
 | **`@Id` annotation** | Primary key field has `@Id` annotation | **High** |
-| **ID generation** | `@GeneratedValue(strategy = GenerationType.IDENTITY)` or UUID generation via `@UuidGenerator` is used | **Medium** |
+| **UUID String PK** | Primary key is `String` type UUID; `@GeneratedValue` is NOT used (UUID is generated in the Service layer via `UUID.randomUUID().toString()`) | **High** |
 | **java.time usage** | Date/time fields use `LocalDateTime` / `OffsetDateTime` (prohibition of `java.util.Date`, `java.sql.Timestamp`) | **Critical** |
 | **`@CreationTimestamp` / `@UpdateTimestamp`** | Audit timestamps use Hibernate `@CreationTimestamp` / `@UpdateTimestamp` annotations | **High** |
 | **Collection initialization** | Collection associations are initialized with `= new ArrayList<>()` to prevent `NullPointerException` | **High** |
@@ -67,9 +67,9 @@ private List<Order> orders;                    // NullPointerException risk
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "id", length = 36)
+    private String id;  // UUID は Service 層で生成: UUID.randomUUID().toString()
+                        // @GeneratedValue は使用しない（プロジェクト規約）
 
     @Column(name = "email", nullable = false, length = 255)
     private String email;

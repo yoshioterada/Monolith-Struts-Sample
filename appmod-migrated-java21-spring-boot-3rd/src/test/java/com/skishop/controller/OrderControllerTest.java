@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import com.skishop.security.WithSkiShopUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -38,7 +38,7 @@ class OrderControllerTest {
 
     @Test
     @DisplayName("注文一覧を表示する")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_displayOrderList_when_authenticated() throws Exception {
         when(orderService.listByUserId(anyString())).thenReturn(List.of());
 
@@ -50,7 +50,7 @@ class OrderControllerTest {
 
     @Test
     @DisplayName("注文詳細を表示する（IDOR防止: ユーザーの注文のみ）")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_displayOrderDetail_when_ownerAccesses() throws Exception {
         Order order = new Order();
         order.setId("order-1");
@@ -66,7 +66,7 @@ class OrderControllerTest {
 
     @Test
     @DisplayName("未認証ユーザーも一覧にアクセスできる (TestSecurityConfig: permitAll)")
-    @WithMockUser(username = "user-id-anon")
+    @WithSkiShopUser(userId = "user-id-anon")
     void should_accessOrderList_when_unauthenticated() throws Exception {
         when(orderService.listByUserId(any())).thenReturn(List.of());
         mockMvc.perform(get("/orders"))

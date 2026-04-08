@@ -2,6 +2,7 @@ package com.skishop.service;
 
 import com.skishop.constant.AppConstants;
 import com.skishop.repository.UserRepository;
+import com.skishop.security.SkiShopUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
@@ -65,12 +66,15 @@ public class CustomUserDetailsService implements UserDetailsService,
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return User.builder()
-                .username(user.getEmail())
-                .password(user.getPasswordHash())  // {sha256}hash$salt or {bcrypt}hash
-                .roles(user.getRole())
-                .accountLocked(AppConstants.STATUS_LOCKED.equals(user.getStatus()))
-                .build();
+        boolean accountNonLocked = !AppConstants.STATUS_LOCKED.equals(user.getStatus());
+        return new SkiShopUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                accountNonLocked,
+                org.springframework.security.core.authority.AuthorityUtils
+                        .createAuthorityList("ROLE_" + user.getRole())
+        );
     }
 
     /**
@@ -90,11 +94,19 @@ public class CustomUserDetailsService implements UserDetailsService,
     @Override
     @Transactional
     public UserDetails updatePassword(UserDetails userDetails, String newEncodedPassword) {
-        // Called by Spring Security after BCrypt upgrade on successful login
         userRepository.findByEmail(userDetails.getUsername()).ifPresent(user -> {
             user.setPasswordHash(newEncodedPassword);
             userRepository.save(user);
         });
+        if (userDetails instanceof SkiShopUserDetails skiUser) {
+            return new SkiShopUserDetails(
+                    skiUser.getUserId(),
+                    skiUser.getUsername(),
+                    newEncodedPassword,
+                    skiUser.isAccountNonLocked(),
+                    skiUser.getAuthorities()
+            );
+        }
         return User.withUserDetails(userDetails).password(newEncodedPassword).build();
     }
 }

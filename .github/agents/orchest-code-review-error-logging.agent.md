@@ -1,5 +1,5 @@
 ---
-description: "Verify exception handling, log output quality, and observability. Use when: Exception class hierarchy validation, structured logging quality, Correlation ID, PII logging prohibition, global exception handler verification. DO NOT use when: Java coding standards check (→ csharp-standards-reviewer), performance analysis (→ performance-reviewer)"
+description: "Verify exception handling, log output quality, and observability. Use when: Exception class hierarchy validation, structured logging quality, Correlation ID, PII logging prohibition, global exception handler verification. DO NOT use when: Java coding standards check (→ java-standards-reviewer), performance analysis (→ performance-reviewer)"
 tools:
   - read
   - search

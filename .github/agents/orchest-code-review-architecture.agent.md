@@ -143,11 +143,26 @@ public class SecurityConfig {
         return http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/account/**", "/orders/**", "/checkout/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
             )
+            .formLogin(form -> form
+                .loginPage("/auth/login")
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/auth/login?error")
+            )
+            .logout(logout -> logout
+                .logoutUrl("/auth/logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionFixation().migrateSession()  // セッション固定攻撃防止
+                .maximumSessions(1))
+            // CSRF は Thymeleaf フォームアプリで必須（無効化禁止）
+            .csrf(Customizer.withDefaults())
             .build();
     }
 }

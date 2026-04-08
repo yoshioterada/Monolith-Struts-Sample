@@ -8,8 +8,8 @@ import com.skishop.service.PointService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.skishop.security.SkiShopUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -57,8 +57,8 @@ public class AccountController {
      * @return {@code "account/points"} ポイント残高画面のテンプレート名
      */
     @GetMapping("/points")
-    public String points(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        PointAccount account = pointService.getAccount(userDetails.getUsername());
+    public String points(@AuthenticationPrincipal SkiShopUserDetails userDetails, Model model) {
+        PointAccount account = pointService.getAccount(userDetails.getUserId());
         model.addAttribute("pointAccount", account);
         return "account/points";
     }
@@ -76,8 +76,8 @@ public class AccountController {
      * @return {@code "account/addresses"} 住所一覧画面のテンプレート名
      */
     @GetMapping("/addresses")
-    public String addresses(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        List<Address> addresses = addressService.findByUserId(userDetails.getUsername());
+    public String addresses(@AuthenticationPrincipal SkiShopUserDetails userDetails, Model model) {
+        List<Address> addresses = addressService.findByUserId(userDetails.getUserId());
         model.addAttribute("addresses", addresses);
         model.addAttribute("addressRequest", new AddressRequest(
                 null, "", "", "", "", "", "", "", false));
@@ -101,15 +101,15 @@ public class AccountController {
     @PostMapping("/addresses")
     public String addAddress(@Valid @ModelAttribute AddressRequest request,
                               BindingResult result,
-                              @AuthenticationPrincipal UserDetails userDetails,
+                              @AuthenticationPrincipal SkiShopUserDetails userDetails,
                               Model model,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            List<Address> addresses = addressService.findByUserId(userDetails.getUsername());
+            List<Address> addresses = addressService.findByUserId(userDetails.getUserId());
             model.addAttribute("addresses", addresses);
             return "account/addresses";
         }
-        addressService.createFromRequest(request, userDetails.getUsername());
+        addressService.createFromRequest(request, userDetails.getUserId());
         redirectAttributes.addFlashAttribute("successMessage", "address.saved");
         return "redirect:/account/addresses";
     }
@@ -127,9 +127,9 @@ public class AccountController {
      */
     @DeleteMapping("/addresses/{id}")
     public String deleteAddress(@PathVariable String id,
-                                 @AuthenticationPrincipal UserDetails userDetails,
+                                 @AuthenticationPrincipal SkiShopUserDetails userDetails,
                                  RedirectAttributes redirectAttributes) {
-        addressService.deleteByIdAndUserId(id, userDetails.getUsername());
+        addressService.deleteByIdAndUserId(id, userDetails.getUserId());
         redirectAttributes.addFlashAttribute("successMessage", "address.deleted");
         return "redirect:/account/addresses";
     }

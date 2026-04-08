@@ -12,7 +12,7 @@ agents:
   - orchest-code-review-architecture
   - orchest-code-review-ddd-domain
   - orchest-code-review-api-endpoint
-  - orchest-code-review-csharp-standards
+  - orchest-code-review-java-standards
   - orchest-code-review-async-concurrency
   - orchest-code-review-error-logging
   - orchest-code-review-data-access
@@ -117,7 +117,7 @@ Phase 2: Independent Reviews (★ Parallel — 2 batches × 7 Agents simultaneou
   │  Batch 1 (7 Agents simultaneous — single tool call block)  │
   │  ├ architecture        ├ api-endpoint              │
   │  ├ ddd-domain          ├ data-access               │
-  │  ├ csharp-standards    └ async-concurrency          │
+  │  ├ java-standards    └ async-concurrency          │
   │  └ config-di                                       │
   │  ⛔ Sequential invocation prohibited: issue all 7 in 1 block │
   ├─────────────────────────────────────────────────┤
@@ -178,7 +178,7 @@ In Phase 2, Agents are invoked in parallel using the following **2-batch structu
 # Issue the following 7 runSubagent calls in [a single tool call block]
 runSubagent(agentName: "orchest-code-review-architecture", prompt: "...", description: "Architecture review")
 runSubagent(agentName: "orchest-code-review-ddd-domain", prompt: "...", description: "DDD review")
-runSubagent(agentName: "orchest-code-review-csharp-standards", prompt: "...", description: "Java standards review")
+runSubagent(agentName: "orchest-code-review-java-standards", prompt: "...", description: "Java standards review")
 runSubagent(agentName: "orchest-code-review-config-di", prompt: "...", description: "Config/DI review")
 runSubagent(agentName: "orchest-code-review-api-endpoint", prompt: "...", description: "API endpoint review")
 runSubagent(agentName: "orchest-code-review-data-access", prompt: "...", description: "Data access review")
@@ -219,7 +219,7 @@ Output format: Findings list with severity (Critical/High/Medium/Low)"
 |---------|-------|-----------|
 | **A: Foundation Quality** | `architecture-reviewer` | Layer dependency direction, project structure, package organization |
 | | `ddd-domain-reviewer` | Aggregate Root boundaries, Value Objects, Domain Events |
-| | `csharp-standards-reviewer` | Naming conventions, Java 21 feature usage, prohibited pattern detection |
+| | `java-standards-reviewer` | Naming conventions, Java 21 feature usage, prohibited pattern detection |
 | | `config-di-reviewer` | Spring DI configuration, Bean registration, application.properties quality |
 | **B: API & Data** | `api-endpoint-reviewer` | Spring MVC controller patterns, REST conventions, validation |
 | | `data-access-reviewer` | JPA entities, Spring Data query quality, Flyway migrations |
@@ -330,10 +330,10 @@ Immediately after Phase 2 completes, before beginning Phase 3 integration, **che
 
 | Conflict Pattern | Initial Resolution Rule | Tech-Lead Adjudication Criterion |
 |---|---|---|
-| `architecture-reviewer` (recommends abstraction) vs `csharp-standards-reviewer` (KISS principle) | Reference design document intent; prioritize `architecture-reviewer` | Balance implementation cost vs long-term maintainability |
+| `architecture-reviewer` (recommends abstraction) vs `java-standards-reviewer` (KISS principle) | Reference design document intent; prioritize `architecture-reviewer` | Balance implementation cost vs long-term maintainability |
 | `security-reviewer` (add restriction) vs `performance-reviewer` (relax restriction) | Prioritize `security-reviewer` by default (safety > performance) | Evaluate actual impact of security risk |
 | `data-access-reviewer` (normalization/add constraint) vs `performance-reviewer` (denormalization/relax constraint) | Reference design document rationale; prioritize `data-access-reviewer` when denormalization lacks clear justification | Find optimal balance between data integrity and query performance |
-| `csharp-standards-reviewer` (recommend Java 21 features) vs `test-quality-reviewer` (prioritize testability) | Recommend Java 21 features as long as testability is not compromised | Balance testability vs code modernity |
+| `java-standards-reviewer` (recommend Java 21 features) vs `test-quality-reviewer` (prioritize testability) | Recommend Java 21 features as long as testability is not compromised | Balance testability vs code modernity |
 | `resilience-reviewer` (add retry) vs `performance-reviewer` (reduce latency) | Allow retry only for idempotent operations | Balance SLA requirements and error rates |
 | `ddd-domain-reviewer` (Aggregate separation) vs `data-access-reviewer` (query efficiency) | Prioritize DDD boundaries; address query efficiency separately via CQRS or similar patterns | Balance business domain complexity vs query performance |
 
@@ -375,7 +375,7 @@ Immediately after Phase 2 completes, before beginning Phase 3 integration, **che
 | architecture-reviewer | ... | ... | ... | ... | ... | ... |
 | ddd-domain-reviewer | ... | ... | ... | ... | ... | ... |
 | api-endpoint-reviewer | ... | ... | ... | ... | ... | ... |
-| csharp-standards-reviewer | ... | ... | ... | ... | ... | ... |
+| java-standards-reviewer | ... | ... | ... | ... | ... | ... |
 | async-concurrency-reviewer | ... | ... | ... | ... | ... | ... |
 | error-logging-reviewer | ... | ... | ... | ... | ... | ... |
 | data-access-reviewer | ... | ... | ... | ... | ... | ... |

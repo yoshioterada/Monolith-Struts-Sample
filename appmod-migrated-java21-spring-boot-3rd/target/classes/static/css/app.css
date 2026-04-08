@@ -197,3 +197,19 @@ button:hover, input[type="submit"]:hover, .btn:hover { background: var(--color-p
   .site-container { padding: 16px; }
   .hero { padding: 32px 24px; }
 }
+
+/* Utility classes (CSP style-src 'self' 準拠: インラインスタイル代替) */
+.d-inline { display: inline; }
+.text-error { color: red; }
+.text-center { text-align: center; }
+.p-lg { padding: 48px; }
+.btn-link-logout {
+  background: none;
+  color: var(--color-primary);
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.msg-success { background: #e6f4ea; border-color: #81c99c; color: #1a6f35; }
+.msg-error { background: #fce8e8; border-color: #f5a0a0; color: #b31412; }

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import com.skishop.security.WithSkiShopUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -40,7 +40,7 @@ class CartControllerTest {
 
     @Test
     @DisplayName("ログイン済みユーザーでカートを表示する")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_displayCart_when_userLoggedIn() throws Exception {
         Cart cart = new Cart();
         cart.setId("cart-1");
@@ -56,7 +56,7 @@ class CartControllerTest {
 
     @Test
     @DisplayName("バリデーションエラーがあった場合カートにリダイレクトする")
-    @WithMockUser(username = "user-id-1")
+    @WithSkiShopUser(userId = "user-id-1")
     void should_redirectToCart_when_invalidCartItem() throws Exception {
         Cart cart = new Cart();
         cart.setId("cart-1");

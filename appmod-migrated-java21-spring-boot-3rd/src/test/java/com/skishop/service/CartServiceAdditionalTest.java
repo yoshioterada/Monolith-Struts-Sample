@@ -3,9 +3,11 @@ package com.skishop.service;
 import com.skishop.model.Cart;
 import com.skishop.model.CartItem;
 import com.skishop.model.Price;
+import com.skishop.model.Product;
 import com.skishop.repository.CartItemRepository;
 import com.skishop.repository.CartRepository;
 import com.skishop.repository.PriceRepository;
+import com.skishop.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +42,9 @@ class CartServiceAdditionalTest {
 
     @Mock
     private PriceRepository priceRepository;
+
+    @Mock
+    private ProductRepository productRepository;
 
     @InjectMocks
     private CartService cartService;
@@ -104,6 +109,10 @@ class CartServiceAdditionalTest {
         cart.setId("cart-1");
         when(cartRepository.findById("cart-1")).thenReturn(Optional.of(cart));
         when(cartItemRepository.findByCartIdAndProductId("cart-1", "prod-new")).thenReturn(Optional.empty());
+        var product = new Product();
+        product.setId("prod-new");
+        product.setName("Test Product");
+        when(productRepository.findById("prod-new")).thenReturn(Optional.of(product));
         when(priceRepository.findByProductId("prod-new")).thenReturn(List.of());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -137,6 +146,10 @@ class CartServiceAdditionalTest {
         price.setRegularPrice(new BigDecimal("5000"));
         when(cartRepository.findById("cart-2")).thenReturn(Optional.of(cart));
         when(cartItemRepository.findByCartIdAndProductId("cart-2", "prod-priced")).thenReturn(Optional.empty());
+        var product = new Product();
+        product.setId("prod-priced");
+        product.setName("Priced Product");
+        when(productRepository.findById("prod-priced")).thenReturn(Optional.of(product));
         when(priceRepository.findByProductId("prod-priced")).thenReturn(List.of(price));
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(i -> i.getArgument(0));
 

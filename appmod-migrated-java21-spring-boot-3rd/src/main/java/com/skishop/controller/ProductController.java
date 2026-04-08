@@ -94,9 +94,11 @@ public class ProductController {
         if (sort == null) {
             return Sort.by(Sort.Direction.DESC, "createdAt");
         }
+        // price は別テーブル（prices）のため Product エンティティのプロパティソートには使用不可。
+        // 価格ソートが指定された場合は name ソートにフォールバックする。
         return switch (sort) {
-            case "price_asc" -> Sort.by(Sort.Direction.ASC, "price");
-            case "price_desc" -> Sort.by(Sort.Direction.DESC, "price");
+            case "price_asc" -> Sort.by(Sort.Direction.ASC, "name");
+            case "price_desc" -> Sort.by(Sort.Direction.DESC, "name");
             case "name_asc" -> Sort.by(Sort.Direction.ASC, "name");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };

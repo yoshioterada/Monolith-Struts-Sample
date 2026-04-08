@@ -114,7 +114,7 @@ Technical context to be communicated to each Agent. This section is loaded in Ph
 | `com.skishop.controller` | Request handling, view resolution | `docs/migration/DESIGN.md` |
 | `com.skishop.service` | Business logic, transaction management | `docs/migration/DESIGN.md` |
 | `com.skishop.repository` | Data access (Spring Data JPA) | `docs/migration/DESIGN.md` |
-| `com.skishop.entity` | JPA entities | `docs/migration/DESIGN.md` |
+| `com.skishop.model` | JPA entities | `docs/migration/DESIGN.md` |
 | `com.skishop.dto` | Data transfer objects | `docs/migration/DESIGN.md` |
 | `com.skishop.config` | Configuration (Security, Web, etc.) | `docs/migration/DESIGN.md` |
 | `com.skishop.exception` | Custom exceptions, global handler | `docs/migration/DESIGN.md` |

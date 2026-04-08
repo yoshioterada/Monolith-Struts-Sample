@@ -12,8 +12,8 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.skishop.security.SkiShopUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -62,11 +62,11 @@ public class CheckoutController {
      * @return {@code "checkout/index"} チェックアウト画面のテンプレート名
      */
     @GetMapping
-    public String checkoutForm(@AuthenticationPrincipal UserDetails userDetails,
+    public String checkoutForm(@AuthenticationPrincipal SkiShopUserDetails userDetails,
                                 HttpSession session,
                                 Model model) {
         CheckoutSummary summary = checkoutService.prepareCheckoutSummary(
-                userDetails.getUsername(), session.getId());
+                userDetails.getUserId(), session.getId());
         String couponCode = (String) session.getAttribute("couponCode");
         BigDecimal couponDiscount = (BigDecimal) session.getAttribute("couponDiscount");
         if (couponDiscount == null) {
@@ -104,7 +104,7 @@ public class CheckoutController {
     @PostMapping
     public String placeOrder(@Valid @ModelAttribute CheckoutRequest request,
                               BindingResult result,
-                              @AuthenticationPrincipal UserDetails userDetails,
+                              @AuthenticationPrincipal SkiShopUserDetails userDetails,
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -119,10 +119,10 @@ public class CheckoutController {
                 request.cardCvv(),
                 request.billingZip()
         );
-        Cart cart = cartService.getOrCreateCart(userDetails.getUsername(), session.getId());
+        Cart cart = cartService.getOrCreateCart(userDetails.getUserId(), session.getId());
         var command = new PlaceOrderCommand(
                 cart.getId(), request.couponCode(), request.usePoints(),
-                paymentInfo, userDetails.getUsername());
+                paymentInfo, userDetails.getUserId());
         Order order = checkoutService.placeOrder(command);
         session.removeAttribute("couponCode");
         session.removeAttribute("couponDiscount");

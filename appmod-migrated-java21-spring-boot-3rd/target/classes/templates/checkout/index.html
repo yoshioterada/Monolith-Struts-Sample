@@ -17,7 +17,7 @@
           <th><label for="couponCode" th:text="#{label.couponCode}">Coupon Code</label></th>
           <td>
             <input id="couponCode" type="text" th:field="*{couponCode}" size="20">
-            <span th:errors="*{couponCode}" style="color:red;"></span>
+            <span th:errors="*{couponCode}" class="text-error"></span>
           </td>
         </tr>
         <tr>
@@ -27,38 +27,38 @@
               <option value="CARD">カード</option>
               <option value="COD">代金引換</option>
             </select>
-            <span th:errors="*{paymentMethod}" style="color:red;"></span>
+            <span th:errors="*{paymentMethod}" class="text-error"></span>
           </td>
         </tr>
         <tr>
           <th><label for="cardNumber" th:text="#{label.cardNumber}">Card Number</label></th>
           <td><input id="cardNumber" type="text" th:field="*{cardNumber}" size="20">
-            <span th:errors="*{cardNumber}" style="color:red;"></span></td>
+            <span th:errors="*{cardNumber}" class="text-error"></span></td>
         </tr>
         <tr>
           <th><label for="cardExpMonth" th:text="#{label.cardExpMonth}">Expiration Month</label></th>
           <td><input id="cardExpMonth" type="text" th:field="*{cardExpMonth}" size="4">
-            <span th:errors="*{cardExpMonth}" style="color:red;"></span></td>
+            <span th:errors="*{cardExpMonth}" class="text-error"></span></td>
         </tr>
         <tr>
           <th><label for="cardExpYear" th:text="#{label.cardExpYear}">Expiration Year</label></th>
           <td><input id="cardExpYear" type="text" th:field="*{cardExpYear}" size="6">
-            <span th:errors="*{cardExpYear}" style="color:red;"></span></td>
+            <span th:errors="*{cardExpYear}" class="text-error"></span></td>
         </tr>
         <tr>
           <th><label for="cardCvv" th:text="#{label.cardCvv}">CVV</label></th>
           <td><input id="cardCvv" type="password" th:field="*{cardCvv}" size="6">
-            <span th:errors="*{cardCvv}" style="color:red;"></span></td>
+            <span th:errors="*{cardCvv}" class="text-error"></span></td>
         </tr>
         <tr>
           <th><label for="billingZip" th:text="#{label.billingZip}">Billing Zip</label></th>
           <td><input id="billingZip" type="text" th:field="*{billingZip}" size="10">
-            <span th:errors="*{billingZip}" style="color:red;"></span></td>
+            <span th:errors="*{billingZip}" class="text-error"></span></td>
         </tr>
         <tr>
           <th><label for="usePoints" th:text="#{label.usePoints}">Use Points</label></th>
           <td><input id="usePoints" type="number" th:field="*{usePoints}" min="0" size="6">
-            <span th:errors="*{usePoints}" style="color:red;"></span></td>
+            <span th:errors="*{usePoints}" class="text-error"></span></td>
         </tr>
       </table>
       <button type="submit">注文確定</button>

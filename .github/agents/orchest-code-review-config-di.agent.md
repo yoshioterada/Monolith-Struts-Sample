@@ -97,28 +97,40 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         .build();
 }
 
-// ❌ High: CSRF disabled without justification for a non-API (server-rendered) app
+// ❌ High: Thymeleaf フォームアプリで CSRF を無効化（正当な理由なし）
 @Bean
 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http.csrf(csrf -> csrf.disable()).build(); // Needs justification if not pure REST API
+    return http.csrf(csrf -> csrf.disable()).build(); // Thymeleaf MVC では CSRF 有効が必須
 }
 
-// ✅ Correct: Well-structured SecurityFilterChain for REST API
+// ✅ Correct: Thymeleaf MVC 向け SecurityFilterChain（CSRF 有効、セッション認証）
 @Bean
 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(csrf -> csrf.disable())  // Acceptable for stateless REST API
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .csrf(Customizer.withDefaults())  // Thymeleaf フォームで自動 CSRF トークン挿入
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/v1/public/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-            .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+            .requestMatchers("/login", "/register", "/css/**", "/js/**", "/images/**", "/actuator/health", "/actuator/info").permitAll()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/account/**", "/orders/**", "/checkout/**").hasAnyRole("USER", "ADMIN")
             .anyRequest().authenticated())
+        .formLogin(form -> form
+            .loginPage("/auth/login")
+            .defaultSuccessUrl("/", true)
+            .failureUrl("/auth/login?error"))
+        .logout(logout -> logout
+            .logoutUrl("/auth/logout")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID"))
+        .sessionManagement(session -> session
+            .sessionFixation().migrateSession()
+            .maximumSessions(1))
         .headers(headers -> headers
             .frameOptions(frame -> frame.deny())
-            .contentTypeOptions(content -> {})
-            .xssProtection(xss -> {}))
+            .contentTypeOptions(Customizer.withDefaults())
+            .xssProtection(Customizer.withDefaults())
+            .httpStrictTransportSecurity(hsts -> hsts
+                .includeSubDomains(true)
+                .maxAgeInSeconds(31536000)))
         .build();
 }
 ```

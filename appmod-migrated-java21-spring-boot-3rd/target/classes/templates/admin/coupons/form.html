@@ -17,7 +17,7 @@
           <th><label for="code" th:text="#{label.couponCode}">Code</label></th>
           <td>
             <input id="code" type="text" th:field="*{code}" size="20">
-            <span th:errors="*{code}" style="color:red;"></span>
+            <span th:errors="*{code}" class="text-error"></span>
           </td>
         </tr>
         <tr>

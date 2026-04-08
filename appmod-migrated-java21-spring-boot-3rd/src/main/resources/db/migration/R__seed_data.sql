@@ -5,6 +5,10 @@ INSERT INTO users(id, email, username, password_hash, salt, status, role, create
   ('u-1', 'user@example.com', 'demo', '{bcrypt}$2a$10$ZTY0uEQ8iejJu2FYL1xKk.JyuQ3OGj5f/xKcPt.93Jt2Yo1rrwdF6', 'n/a', 'ACTIVE', 'USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO users(id, email, username, password_hash, salt, status, role, created_at, updated_at) VALUES
+  ('u-admin', 'admin@example.com', 'admin', '{bcrypt}$2a$10$YLQzSVLi1A9JZrwXg5Ify.wY5Nk8CmSF4S2uZszNqGWBr2H/xORcS', 'n/a', 'ACTIVE', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO categories(id, name, parent_id) VALUES
   ('c-1', 'Ski', NULL)
 ON CONFLICT (id) DO NOTHING;

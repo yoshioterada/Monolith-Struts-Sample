@@ -8,6 +8,7 @@ import com.skishop.model.Price;
 import com.skishop.repository.CartItemRepository;
 import com.skishop.repository.CartRepository;
 import com.skishop.repository.PriceRepository;
+import com.skishop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final PriceRepository priceRepository;
+    private final ProductRepository productRepository;
 
     /**
      * カート ID でカートを取得する。
@@ -187,10 +189,14 @@ public class CartService {
             return;
         }
 
+        var product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
+
         var item = new CartItem();
         item.setId(UUID.randomUUID().toString());
         item.setCart(cart);
         item.setProductId(productId);
+        item.setProductName(product.getName());
         item.setQuantity(quantity);
         item.setUnitPrice(resolveUnitPrice(productId));
         cartItemRepository.save(item);

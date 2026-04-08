@@ -1,5 +1,6 @@
 package com.skishop.config;
 
+import com.skishop.security.SkiShopUserDetails;
 import com.skishop.service.CartService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -77,12 +78,17 @@ public class CartMergeSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
         if (session != null) {
             String cartId = (String) session.getAttribute("cartId");
             if (cartId != null) {
-                String userEmail = authentication.getName();
-                try {
-                    cartService.mergeCartById(cartId, userEmail);
-                    session.removeAttribute("cartId");
-                } catch (RuntimeException e) {
-                    log.warn("Cart merge failed for cartId={}", cartId, e);
+                String userId = null;
+                if (authentication.getPrincipal() instanceof SkiShopUserDetails skiUser) {
+                    userId = skiUser.getUserId();
+                }
+                if (userId != null) {
+                    try {
+                        cartService.mergeCartById(cartId, userId);
+                        session.removeAttribute("cartId");
+                    } catch (RuntimeException e) {
+                        log.warn("Cart merge failed for cartId={}", cartId, e);
+                    }
                 }
             }
         }

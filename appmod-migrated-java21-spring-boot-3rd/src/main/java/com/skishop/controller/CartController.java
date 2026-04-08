@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.skishop.security.SkiShopUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -66,7 +66,7 @@ public class CartController {
      * @return {@code "cart/view"} カート画面のテンプレート名
      */
     @GetMapping
-    public String view(@AuthenticationPrincipal UserDetails userDetails,
+    public String view(@AuthenticationPrincipal SkiShopUserDetails userDetails,
                        HttpSession session,
                        Model model) {
         Cart cart = resolveCart(userDetails, session);
@@ -97,7 +97,7 @@ public class CartController {
     @PostMapping("/items")
     public String addItem(@Valid @ModelAttribute CartItemRequest request,
                           BindingResult result,
-                          @AuthenticationPrincipal UserDetails userDetails,
+                          @AuthenticationPrincipal SkiShopUserDetails userDetails,
                           HttpSession session,
                           RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -128,7 +128,7 @@ public class CartController {
     public String updateItem(@PathVariable String itemId,
                               @Valid @ModelAttribute CartItemRequest request,
                               BindingResult result,
-                              @AuthenticationPrincipal UserDetails userDetails,
+                              @AuthenticationPrincipal SkiShopUserDetails userDetails,
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -153,7 +153,7 @@ public class CartController {
      */
     @DeleteMapping("/items/{itemId}")
     public String removeItem(@PathVariable String itemId,
-                              @AuthenticationPrincipal UserDetails userDetails,
+                              @AuthenticationPrincipal SkiShopUserDetails userDetails,
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
         Cart cart = resolveCart(userDetails, session);
@@ -180,7 +180,7 @@ public class CartController {
     @PostMapping("/coupon")
     public String applyCoupon(@Valid @ModelAttribute CouponApplyRequest request,
                                BindingResult result,
-                               @AuthenticationPrincipal UserDetails userDetails,
+                               @AuthenticationPrincipal SkiShopUserDetails userDetails,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -198,8 +198,8 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    private Cart resolveCart(UserDetails userDetails, HttpSession session) {
-        String userId = userDetails != null ? userDetails.getUsername() : null;
+    private Cart resolveCart(SkiShopUserDetails userDetails, HttpSession session) {
+        String userId = userDetails != null ? userDetails.getUserId() : null;
         String cartId = (String) session.getAttribute("cartId");
         Cart cart = cartService.resolveCart(userId, session.getId(), cartId);
         if (userDetails == null && cartId == null) {
