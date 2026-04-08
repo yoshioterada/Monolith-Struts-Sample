@@ -19,7 +19,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +31,9 @@ class MailServiceTest {
 
     @Mock
     private EmailQueueRepository emailQueueRepository;
+
+    @Mock
+    private EmailQueueStatusService emailQueueStatusService;
 
     @Mock
     private JavaMailSender javaMailSender;
@@ -118,7 +124,7 @@ class MailServiceTest {
         mail.setStatus("PENDING");
         mail.setRetryCount(0);
         mail.setScheduledAt(LocalDateTime.now().minusMinutes(1));
-        when(emailQueueRepository.findByStatusOrderByScheduledAtAsc("PENDING"))
+        when(emailQueueStatusService.fetchPendingBatch(50))
                 .thenReturn(List.of(mail));
 
         // Act
@@ -126,11 +132,11 @@ class MailServiceTest {
 
         // Assert
         verify(javaMailSender).send(any(SimpleMailMessage.class));
-        assertThat(mail.getStatus()).isEqualTo("SENT");
+        verify(emailQueueStatusService).markSent("eq-1");
     }
 
     @Test
-    @DisplayName("送信失敗した場合、リトライカウントが増加する")
+    @DisplayName("送信失敗した場合、リトライまたは失敗処理が呼ばれる")
     void should_incrementRetryCount_when_sendFails() {
         // Arrange
         var mail = new EmailQueue();
@@ -141,21 +147,19 @@ class MailServiceTest {
         mail.setStatus("PENDING");
         mail.setRetryCount(0);
         mail.setScheduledAt(LocalDateTime.now().minusMinutes(1));
-        when(emailQueueRepository.findByStatusOrderByScheduledAtAsc("PENDING"))
+        when(emailQueueStatusService.fetchPendingBatch(50))
                 .thenReturn(List.of(mail));
         doThrow(new RuntimeException("SMTP error")).when(javaMailSender).send(any(SimpleMailMessage.class));
-        when(emailQueueRepository.save(any(EmailQueue.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
         mailService.processQueue();
 
         // Assert
-        assertThat(mail.getRetryCount()).isEqualTo(1);
-        assertThat(mail.getStatus()).isEqualTo("PENDING");  // still pending after 1 retry
+        verify(emailQueueStatusService).markRetryOrFailed(eq("eq-2"), eq(0), eq(5), anyString(), any(LocalDateTime.class));
     }
 
     @Test
-    @DisplayName("リトライ上限を超えた場合、ステータスがFAILEDになる")
+    @DisplayName("リトライ上限超過時もmarkRetryOrFailedが呼ばれる")
     void should_setFailed_when_retryCountExceedsMax() {
         // Arrange
         var mail = new EmailQueue();
@@ -164,19 +168,17 @@ class MailServiceTest {
         mail.setSubject("Test");
         mail.setBody("Body");
         mail.setStatus("PENDING");
-        mail.setRetryCount(2);  // already tried twice, max is 3
+        mail.setRetryCount(4);
         mail.setScheduledAt(LocalDateTime.now().minusMinutes(1));
-        when(emailQueueRepository.findByStatusOrderByScheduledAtAsc("PENDING"))
+        when(emailQueueStatusService.fetchPendingBatch(50))
                 .thenReturn(List.of(mail));
         doThrow(new RuntimeException("SMTP error")).when(javaMailSender).send(any(SimpleMailMessage.class));
-        when(emailQueueRepository.save(any(EmailQueue.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
         mailService.processQueue();
 
         // Assert
-        assertThat(mail.getStatus()).isEqualTo("FAILED");
-        assertThat(mail.getRetryCount()).isEqualTo(3);
+        verify(emailQueueStatusService).markRetryOrFailed(eq("eq-3"), eq(4), eq(5), anyString(), any(LocalDateTime.class));
     }
 
     @Test
@@ -190,14 +192,15 @@ class MailServiceTest {
         mail.setBody("Body");
         mail.setStatus("PENDING");
         mail.setRetryCount(0);
-        mail.setScheduledAt(LocalDateTime.now().plusHours(1));  // future
-        when(emailQueueRepository.findByStatusOrderByScheduledAtAsc("PENDING"))
+        mail.setScheduledAt(LocalDateTime.now().plusHours(1));
+        when(emailQueueStatusService.fetchPendingBatch(50))
                 .thenReturn(List.of(mail));
 
         // Act
         mailService.processQueue();
 
         // Assert
-        assertThat(mail.getStatus()).isEqualTo("PENDING");  // unchanged
+        verify(javaMailSender, never()).send(any(SimpleMailMessage.class));
+        verify(emailQueueStatusService, never()).markSent(anyString());
     }
 }

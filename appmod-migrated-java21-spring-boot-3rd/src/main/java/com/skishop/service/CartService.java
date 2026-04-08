@@ -1,6 +1,7 @@
 package com.skishop.service;
 
 import com.skishop.constant.AppConstants;
+import com.skishop.exception.BusinessException;
 import com.skishop.exception.ResourceNotFoundException;
 import com.skishop.model.Cart;
 import com.skishop.model.CartItem;
@@ -17,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * ショッピングカート管理サービス。
@@ -62,6 +65,8 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final PriceRepository priceRepository;
     private final ProductRepository productRepository;
+
+    private static final int MAX_CART_ITEMS = 50;
 
     /**
      * カート ID でカートを取得する。
@@ -183,6 +188,10 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", cartId));
 
         var existingItem = cartItemRepository.findByCartIdAndProductId(cartId, productId);
+        if (existingItem.isEmpty() && cartItemRepository.countByCartId(cartId) >= MAX_CART_ITEMS) {
+            throw new BusinessException("Cart item limit reached",
+                    "redirect:/cart", "error.cart.limit");
+        }
         if (existingItem.isPresent()) {
             existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
             cartItemRepository.save(existingItem.get());
@@ -328,9 +337,29 @@ public class CartService {
         } else {
             var userCart = userCarts.getFirst();
             List<CartItem> sessionItems = cartItemRepository.findByCartId(sourceCart.getId());
+            List<CartItem> existingItems = cartItemRepository.findByCartId(userCart.getId());
+
+            // Build lookup map of existing items by productId
+            Map<String, CartItem> existingMap = existingItems.stream()
+                    .collect(Collectors.toMap(CartItem::getProductId, item -> item, (a, b) -> a));
+
             for (CartItem sessionItem : sessionItems) {
-                addItem(userCart.getId(), sessionItem.getProductId(), sessionItem.getQuantity());
+                CartItem existing = existingMap.get(sessionItem.getProductId());
+                if (existing != null) {
+                    existing.setQuantity(existing.getQuantity() + sessionItem.getQuantity());
+                    cartItemRepository.save(existing);
+                } else {
+                    var newItem = new CartItem();
+                    newItem.setId(UUID.randomUUID().toString());
+                    newItem.setCart(userCart);
+                    newItem.setProductId(sessionItem.getProductId());
+                    newItem.setProductName(sessionItem.getProductName());
+                    newItem.setQuantity(sessionItem.getQuantity());
+                    newItem.setUnitPrice(sessionItem.getUnitPrice());
+                    cartItemRepository.save(newItem);
+                }
             }
+
             cartItemRepository.deleteByCartId(sourceCart.getId());
             sourceCart.setStatus(AppConstants.CART_STATUS_MERGED);
             cartRepository.save(sourceCart);

@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+
 /**
  * {@link EmailQueue} エンティティのデータアクセスを提供する Spring Data JPA リポジトリ。
  *
@@ -42,4 +44,13 @@ public interface EmailQueueRepository extends JpaRepository<EmailQueue, String> 
      * @return 送信予定時刻の昇順でソートされたメールキューリスト。存在しない場合は空リスト
      */
     List<EmailQueue> findByStatusOrderByScheduledAtAsc(String status);
+
+    /**
+     * 指定ステータスのメールキューをページネーション付きで取得する。
+     *
+     * @param status   検索対象のステータス
+     * @param pageable ページネーション情報
+     * @return 送信予定時刻の昇順でソートされたメールキューリスト
+     */
+    List<EmailQueue> findByStatusOrderByScheduledAtAsc(String status, Pageable pageable);
 }

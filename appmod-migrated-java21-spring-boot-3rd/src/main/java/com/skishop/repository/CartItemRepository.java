@@ -47,6 +47,16 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
     Optional<CartItem> findByCartIdAndProductId(String cartId, String productId);
 
     /**
+     * 指定されたカート ID に紐づくカートアイテム数をカウントする。
+     *
+     * <p>カートへの商品追加時に、最大アイテム数の上限チェックに使用される。</p>
+     *
+     * @param cartId カウント対象のカート ID（null 不可）
+     * @return カート内のアイテム数
+     */
+    long countByCartId(String cartId);
+
+    /**
      * 指定されたカート ID に紐づく全カートアイテムを一括削除する。
      *
      * <p>チェックアウト完了後のカートクリア処理で使用される。

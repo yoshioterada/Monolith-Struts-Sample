@@ -45,26 +45,19 @@ public class RequestIdFilter extends OncePerRequestFilter {
     /** SLF4J MDC に格納する際のキー名。ログパターンで {@code %X{reqId}} として参照される。 */
     private static final String MDC_KEY = "reqId";
 
-    /**
-     * リクエスト ID の生成・伝播を行うフィルター処理。
-     *
-     * <p>受信リクエストの {@code X-Request-Id} ヘッダーが存在すればその値を使用し、
-     * 存在しなければ UUID を新規生成する。リクエスト ID は MDC に格納され、
-     * レスポンスヘッダーにも設定される。フィルターチェーン完了後、MDC から
-     * リクエスト ID を確実に削除する。</p>
-     *
-     * @param request  HTTP リクエスト
-     * @param response HTTP レスポンス
-     * @param chain    フィルターチェーン
-     * @throws ServletException サーブレット処理中にエラーが発生した場合
-     * @throws IOException      I/O エラーが発生した場合
-     */
+    private static final int MAX_REQUEST_ID_LENGTH = 64;
+
+    private static final java.util.regex.Pattern VALID_REQUEST_ID =
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9\\-]{1,64}$");
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
         String requestId = request.getHeader(HEADER_NAME);
-        if (!StringUtils.hasText(requestId)) {
+        if (!StringUtils.hasText(requestId)
+                || requestId.length() > MAX_REQUEST_ID_LENGTH
+                || !VALID_REQUEST_ID.matcher(requestId).matches()) {
             requestId = UUID.randomUUID().toString();
         }
         MDC.put(MDC_KEY, requestId);

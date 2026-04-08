@@ -13,7 +13,9 @@ import com.skishop.repository.OrderRepository;
 import com.skishop.repository.ReturnRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,6 +140,18 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<Order> listByUserId(String userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    /**
+     * 指定ユーザーの注文一覧をページネーション付きで取得する。
+     *
+     * @param userId   ユーザー ID
+     * @param pageable ページネーション情報
+     * @return 当該ユーザーの注文ページ
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> listByUserId(String userId, Pageable pageable) {
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
     }
 
     /**

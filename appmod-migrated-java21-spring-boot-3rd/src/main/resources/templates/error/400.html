@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}"
+      lang="ja">
+<head>
+  <title>400 Bad Request</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <div class="card text-center p-lg">
+    <h2>400 - 不正なリクエスト</h2>
+    <p>入力内容に誤りがあります。内容をご確認のうえ、もう一度お試しください。</p>
+    <div th:if="${errors}" class="text-left">
+      <ul>
+        <li th:each="error : ${errors}" th:text="${error.defaultMessage}">エラーメッセージ</li>
+      </ul>
+    </div>
+    <a th:href="@{/}" class="btn">ホームに戻る</a>
+  </div>
+</div>
+</body>
+</html>

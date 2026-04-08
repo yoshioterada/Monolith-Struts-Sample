@@ -21,8 +21,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -93,7 +94,7 @@ class CheckoutServiceTest {
         product.setId("prod-1");
         product.setName("Test Product");
         product.setSku("SKU-001");
-        when(productService.findById("prod-1")).thenReturn(product);
+        when(productService.findAllByIds(List.of("prod-1"))).thenReturn(Map.of("prod-1", product));
 
         var order = new Order();
         order.setId("order-1");
@@ -179,7 +180,7 @@ class CheckoutServiceTest {
         var product = new Product();
         product.setId("prod-1");
         product.setName("Test Product");
-        when(productService.findById("prod-1")).thenReturn(product);
+        when(productService.findAllByIds(List.of("prod-1"))).thenReturn(Map.of("prod-1", product));
 
         var order = new Order();
         order.setId("order-1");
@@ -217,7 +218,7 @@ class CheckoutServiceTest {
         var product = new Product();
         product.setId("prod-1");
         product.setName("Test Product");
-        when(productService.findById("prod-1")).thenReturn(product);
+        when(productService.findAllByIds(List.of("prod-1"))).thenReturn(Map.of("prod-1", product));
 
         var order = new Order();
         order.setId("order-1");

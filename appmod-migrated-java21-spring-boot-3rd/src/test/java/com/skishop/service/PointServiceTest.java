@@ -67,7 +67,7 @@ class PointServiceTest {
         account.setLifetimeEarned(500);
         account.setLifetimeRedeemed(0);
         when(pointAccountRepository.findByUserId("user-1")).thenReturn(Optional.of(account));
-        when(pointAccountRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(pointAccountRepository.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
         when(pointTransactionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         // Act
@@ -91,7 +91,7 @@ class PointServiceTest {
         when(pointTransactionRepository.sumExpiredAmount(eq("user-1"), any())).thenReturn(0);
         when(pointTransactionRepository.bulkExpire(eq("user-1"), any())).thenReturn(0);
         when(pointAccountRepository.findByUserId("user-1")).thenReturn(Optional.of(account));
-        when(pointAccountRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(pointAccountRepository.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
         when(pointTransactionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         // Act

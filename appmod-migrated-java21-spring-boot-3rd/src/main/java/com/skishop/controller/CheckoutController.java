@@ -106,10 +106,20 @@ public class CheckoutController {
                               BindingResult result,
                               @AuthenticationPrincipal SkiShopUserDetails userDetails,
                               HttpSession session,
+                              Model model,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "error.checkout.failed");
-            return "redirect:/checkout";
+            // Re-populate checkout form data for re-rendering
+            CheckoutSummary summary = checkoutService.prepareCheckoutSummary(
+                    userDetails.getUserId(), session.getId());
+            model.addAttribute("cart", summary.cart());
+            model.addAttribute("items", summary.items());
+            model.addAttribute("subtotal", summary.subtotal());
+            model.addAttribute("shippingFee", summary.shippingFee());
+            model.addAttribute("tax", summary.tax());
+            model.addAttribute("couponCode", request.couponCode());
+            model.addAttribute("couponDiscount", session.getAttribute("couponDiscount"));
+            return "checkout/index";
         }
         PaymentInfo paymentInfo = new PaymentInfo(
                 request.paymentMethod(),

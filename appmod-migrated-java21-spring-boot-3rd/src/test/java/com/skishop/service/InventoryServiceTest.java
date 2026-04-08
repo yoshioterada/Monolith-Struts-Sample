@@ -52,15 +52,15 @@ class InventoryServiceTest {
         // Arrange
         var item = createCartItem("P001", 2);
         var inventory = createInventory(10, 0);
-        when(inventoryRepository.findByProductId("P001")).thenReturn(Optional.of(inventory));
+        inventory.setProductId("P001");
+        when(inventoryRepository.findByProductIdIn(List.of("P001"))).thenReturn(List.of(inventory));
 
         // Act
         inventoryService.reserveItems(List.of(item));
 
         // Assert
-        var captor = ArgumentCaptor.forClass(Inventory.class);
-        verify(inventoryRepository).save(captor.capture());
-        assertThat(captor.getValue().getReservedQuantity()).isEqualTo(2);
+        verify(inventoryRepository).saveAndFlush(inventory);
+        assertThat(inventory.getReservedQuantity()).isEqualTo(2);
     }
 
     @Test
@@ -69,7 +69,8 @@ class InventoryServiceTest {
         // Arrange
         var item = createCartItem("P002", 5);
         var inventory = createInventory(3, 0);
-        when(inventoryRepository.findByProductId("P002")).thenReturn(Optional.of(inventory));
+        inventory.setProductId("P002");
+        when(inventoryRepository.findByProductIdIn(List.of("P002"))).thenReturn(List.of(inventory));
 
         // Act & Assert
         assertThatThrownBy(() -> inventoryService.reserveItems(List.of(item)))
@@ -83,7 +84,7 @@ class InventoryServiceTest {
         inventoryService.reserveItems(null);
 
         // Assert
-        verify(inventoryRepository, never()).findByProductId(any());
+        verify(inventoryRepository, never()).findByProductIdIn(any());
     }
 
     @Test
@@ -93,7 +94,7 @@ class InventoryServiceTest {
         inventoryService.reserveItems(List.of());
 
         // Assert
-        verify(inventoryRepository, never()).findByProductId(any());
+        verify(inventoryRepository, never()).findByProductIdIn(any());
     }
 
     @Test
@@ -102,15 +103,15 @@ class InventoryServiceTest {
         // Arrange
         var item = createCartItem("P003", 2);
         var inventory = createInventory(10, 5);
-        when(inventoryRepository.findByProductId("P003")).thenReturn(Optional.of(inventory));
+        inventory.setProductId("P003");
+        when(inventoryRepository.findByProductIdIn(List.of("P003"))).thenReturn(List.of(inventory));
 
         // Act
         inventoryService.releaseItems(List.of(item));
 
         // Assert
-        var captor = ArgumentCaptor.forClass(Inventory.class);
-        verify(inventoryRepository).save(captor.capture());
-        assertThat(captor.getValue().getReservedQuantity()).isEqualTo(3);
+        verify(inventoryRepository).saveAndFlush(inventory);
+        assertThat(inventory.getReservedQuantity()).isEqualTo(3);
     }
 
     @Test
@@ -119,16 +120,16 @@ class InventoryServiceTest {
         // Arrange
         var item = createCartItem("P004", 3);
         var inventory = createInventory(10, 3);
-        when(inventoryRepository.findByProductId("P004")).thenReturn(Optional.of(inventory));
+        inventory.setProductId("P004");
+        when(inventoryRepository.findByProductIdIn(List.of("P004"))).thenReturn(List.of(inventory));
 
         // Act
         inventoryService.deductStock(List.of(item));
 
         // Assert
-        var captor = ArgumentCaptor.forClass(Inventory.class);
-        verify(inventoryRepository).save(captor.capture());
-        assertThat(captor.getValue().getQuantity()).isEqualTo(7);
-        assertThat(captor.getValue().getReservedQuantity()).isEqualTo(0);
+        verify(inventoryRepository).saveAndFlush(inventory);
+        assertThat(inventory.getQuantity()).isEqualTo(7);
+        assertThat(inventory.getReservedQuantity()).isEqualTo(0);
     }
 
     @Test

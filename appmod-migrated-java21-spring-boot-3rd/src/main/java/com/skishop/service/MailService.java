@@ -11,6 +11,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -24,8 +26,7 @@ import java.util.UUID;
  *
  * <p>リトライ機能:</p>
  * <ul>
- *   <li>送信失敗時は最大 {@value #MAX_RETRY} 回までリトライする</li>
- *   <li>リトライ間隔は 1 分後にスケジュールされる</li>
+ *   <li>送信失敗時は最大 {@value #MAX_RETRY} 回まで指数バックオフでリトライする</li>
  *   <li>リトライ上限に達した場合はステータスを {@code FAILED} に設定する</li>
  * </ul>
  *
@@ -34,6 +35,7 @@ import java.util.UUID;
  * <p>依存関係:</p>
  * <ul>
  *   <li>{@link EmailQueueRepository} — メールキューの永続化</li>
+ *   <li>{@link EmailQueueStatusService} — ステータス更新（トランザクション分離）</li>
  *   <li>{@link JavaMailSender} — SMTP メール送信</li>
  * </ul>
  *
@@ -46,12 +48,12 @@ import java.util.UUID;
 @Slf4j
 public class MailService {
 
-    private static final int MAX_RETRY = 3;
+    private static final int MAX_RETRY = 5;
+    private static final int BATCH_SIZE = 50;
     private static final String STATUS_PENDING = "PENDING";
-    private static final String STATUS_SENT = "SENT";
-    private static final String STATUS_FAILED = "FAILED";
 
     private final EmailQueueRepository emailQueueRepository;
+    private final EmailQueueStatusService emailQueueStatusService;
     private final JavaMailSender javaMailSender;
 
     /**
@@ -118,45 +120,35 @@ public class MailService {
      * <p>30 秒間隔（{@code fixedDelay = 30000}）で自動実行されるスケジュールタスク。
      * {@code PENDING} ステータスかつスケジュール時刻を過ぎたメールを順次送信する。</p>
      *
-     * <p>送信結果に応じてステータスを更新:</p>
-     * <ul>
-     *   <li>送信成功: {@code SENT} + 送信日時を記録</li>
-     *   <li>送信失敗（リトライ回数 &lt; {@value #MAX_RETRY}）: 1 分後にリスケジュール</li>
-     *   <li>送信失敗（リトライ回数 &ge; {@value #MAX_RETRY}）: {@code FAILED} に変更</li>
-     * </ul>
+     * <p>{@code @Transactional} は付与しない — SMTP I/O が DB コネクションを占有しないよう、
+     * 個別のステータス更新は {@link EmailQueueStatusService} に委譲する。</p>
      */
     @Scheduled(fixedDelay = 30000)
-    @Transactional
+    @SchedulerLock(name = "processEmailQueue", lockAtMostFor = "5m", lockAtLeastFor = "10s")
     public void processQueue() {
-        List<EmailQueue> pending = emailQueueRepository
-                .findByStatusOrderByScheduledAtAsc(STATUS_PENDING);
-        LocalDateTime now = LocalDateTime.now();
+        try {
+            List<EmailQueue> pending = emailQueueStatusService.fetchPendingBatch(BATCH_SIZE);
+            LocalDateTime now = LocalDateTime.now();
 
-        for (EmailQueue mail : pending) {
-            if (mail.getScheduledAt() != null && mail.getScheduledAt().isAfter(now)) {
-                continue;
+            for (EmailQueue mail : pending) {
+                if (mail.getScheduledAt() != null && mail.getScheduledAt().isAfter(now)) {
+                    continue;
+                }
+                processSingleMail(mail, now);
             }
-            handleSend(mail, now);
+        } catch (Exception e) {
+            log.error("Error processing mail queue: {}", e.getMessage(), e);
         }
     }
 
-    private void handleSend(EmailQueue mail, LocalDateTime now) {
+    private void processSingleMail(EmailQueue mail, LocalDateTime now) {
         try {
             send(mail);
-            mail.setStatus(STATUS_SENT);
-            mail.setSentAt(LocalDateTime.now());
-            emailQueueRepository.save(mail);
+            emailQueueStatusService.markSent(mail.getId());
         } catch (RuntimeException e) {
             log.error("Failed to send email id={}: {}", mail.getId(), e.getMessage(), e);
-            int retryCount = mail.getRetryCount() + 1;
-            mail.setRetryCount(retryCount);
-            mail.setLastError(e.getMessage());
-            if (retryCount >= MAX_RETRY) {
-                mail.setStatus(STATUS_FAILED);
-            } else {
-                mail.setScheduledAt(now.plusMinutes(1));
-            }
-            emailQueueRepository.save(mail);
+            emailQueueStatusService.markRetryOrFailed(
+                    mail.getId(), mail.getRetryCount(), MAX_RETRY, e.getMessage(), now);
         }
     }
 

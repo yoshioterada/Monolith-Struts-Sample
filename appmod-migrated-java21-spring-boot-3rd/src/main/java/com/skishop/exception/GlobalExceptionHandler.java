@@ -1,8 +1,11 @@
 package com.skishop.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -99,6 +102,46 @@ public class GlobalExceptionHandler {
     public String handleAccessDenied(AccessDeniedException ex, Model model) {
         log.warn("Access denied: {}", ex.getMessage());
         return "error/403";
+    }
+
+    /**
+     * {@link ObjectOptimisticLockingFailureException} をハンドリングし、カート画面にリダイレクトする。
+     *
+     * <p>在庫・クーポン・ポイントの並行更新で楽観ロック競合が発生した場合に
+     * リトライを促すメッセージとともにリダイレクトする。</p>
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public String handleOptimisticLock(ObjectOptimisticLockingFailureException ex,
+                                        RedirectAttributes redirectAttributes) {
+        log.warn("Optimistic locking failure: {}", ex.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage",
+                "Another update was in progress. Please try again.");
+        return "redirect:/cart";
+    }
+
+    /**
+     * {@link MethodArgumentNotValidException} をハンドリングし、400 エラーページを返す。
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleValidation(MethodArgumentNotValidException ex, Model model) {
+        log.warn("Validation failed: {} error(s)", ex.getBindingResult().getErrorCount());
+        model.addAttribute("errors", ex.getBindingResult().getAllErrors());
+        return "error/400";
+    }
+
+    /**
+     * {@link DataIntegrityViolationException} をハンドリングする。
+     *
+     * <p>ユニーク制約違反等の DB 整合性エラー（TOCTOU レースコンディション対策）。</p>
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public String handleDataIntegrity(DataIntegrityViolationException ex,
+                                       RedirectAttributes redirectAttributes) {
+        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage",
+                "The requested operation could not be completed. Please try again.");
+        return "redirect:/auth/register";
     }
 
     /**

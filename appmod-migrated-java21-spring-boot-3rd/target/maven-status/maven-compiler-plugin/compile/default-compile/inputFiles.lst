@@ -16,11 +16,13 @@
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/Order.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/exception/GlobalExceptionHandler.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/Address.java
+/Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/service/EmailQueueStatusService.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/service/AdminShippingMethodService.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/request/PlaceOrderCommand.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/controller/admin/AdminShippingMethodController.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/repository/OrderRepository.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/request/admin/AdminCouponRequest.java
+/Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/config/CustomAuthFailureHandler.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/OrderItem.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/request/OrderBuildRequest.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/request/admin/AdminShippingMethodRequest.java
@@ -42,6 +44,7 @@
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/service/TaxService.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/controller/OrderController.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/controller/admin/AdminOrderController.java
+/Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/config/ShedLockConfig.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/PasswordResetToken.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/controller/AuthController.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/request/PaymentInfo.java
@@ -51,11 +54,13 @@
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/repository/PointAccountRepository.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/service/AuthService.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/Payment.java
+/Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/config/CustomAuthSuccessHandler.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/PointTransaction.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/response/CheckoutSummary.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/service/AddressService.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/repository/CouponRepository.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/model/Cart.java
+/Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/config/SmtpHealthIndicator.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/repository/SecurityLogRepository.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/dto/request/RegisterRequest.java
 /Users/yoterada/GitHub/Monolith-Struts-Sample/appmod-migrated-java21-spring-boot-3rd/src/main/java/com/skishop/repository/PasswordResetTokenRepository.java

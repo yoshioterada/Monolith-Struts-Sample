@@ -177,7 +177,7 @@ class CouponServiceTest {
         var coupon = new Coupon();
         coupon.setId("coupon-1");
         coupon.setUsedCount(5);
-        when(couponRepository.save(any(Coupon.class))).thenAnswer(i -> i.getArgument(0));
+        when(couponRepository.saveAndFlush(any(Coupon.class))).thenAnswer(i -> i.getArgument(0));
         when(couponUsageRepository.save(any(CouponUsage.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act

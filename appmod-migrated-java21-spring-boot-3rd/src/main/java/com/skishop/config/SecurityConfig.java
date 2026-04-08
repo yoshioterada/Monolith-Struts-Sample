@@ -1,5 +1,6 @@
 package com.skishop.config;
 
+import com.skishop.service.AuthService;
 import com.skishop.service.CartService;
 import com.skishop.service.CustomUserDetailsService;
 import com.skishop.util.LegacySha256PasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import java.util.HashMap;
@@ -69,8 +71,9 @@ public class SecurityConfig {
     /** ユーザー認証情報を提供するカスタム UserDetailsService。 */
     private final CustomUserDetailsService customUserDetailsService;
 
-    /** カートマージ処理で使用するカートサービス。 */
     private final CartService cartService;
+
+    private final AuthService authService;
 
     /**
      * パスワードエンコーダーの Bean を生成する。
@@ -128,7 +131,12 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationSuccessHandler cartMergeSuccessHandler() {
-        return new CartMergeSuccessHandler(cartService);
+        return new CustomAuthSuccessHandler(cartService, authService);
+    }
+
+    @Bean
+    public AuthenticationFailureHandler customAuthFailureHandler() {
+        return new CustomAuthFailureHandler(authService, customUserDetailsService);
     }
 
     /**
@@ -161,13 +169,20 @@ public class SecurityConfig {
                 ).hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
-                .anyRequest().permitAll()
+                .requestMatchers(
+                    "/", "/auth/**", "/products/**", "/coupons",
+                    "/cart", "/cart/items", "/cart/items/**",
+                    "/css/**", "/js/**", "/images/**", "/webjars/**",
+                    "/error", "/error/**",
+                    "/swagger-ui/**", "/v3/api-docs/**"
+                ).permitAll()
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")
                 .successHandler(cartMergeSuccessHandler())
-                .failureUrl("/auth/login?error=true")
+                .failureHandler(customAuthFailureHandler())
                 .permitAll()
             )
             .logout(logout -> logout
@@ -193,6 +208,10 @@ public class SecurityConfig {
                 .contentTypeOptions(Customizer.withDefaults())
                 .httpStrictTransportSecurity(hsts ->
                     hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
+                .referrerPolicy(referrer ->
+                    referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .permissionsPolicy(permissions ->
+                    permissions.policy("camera=(), microphone=(), geolocation=()"))
             );
         return http.build();
     }

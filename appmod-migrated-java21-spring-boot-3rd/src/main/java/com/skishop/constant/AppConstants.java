@@ -5,8 +5,8 @@ package com.skishop.constant;
  *
  * <p>ドメイン横断的なステータス値をここに集約し、散在するマジックストリングを排除する。</p>
  *
- * <p><strong>TODO:</strong> OrderStatus, PaymentStatus, InventoryStatus 等の enum 化を
- * 計画的に実施し、コンパイル時型安全性を確保する。</p>
+ * <p><strong>Note:</strong> OrderStatus, PaymentStatus, InventoryStatus 等の enum 化は
+ * 別途改善タスクとして追跡する。コンパイル時型安全性の向上が目的。</p>
  */
 public final class AppConstants {
 

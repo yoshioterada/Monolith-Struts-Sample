@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: skishop-db
     environment:
-      POSTGRES_DB: skishop
-      POSTGRES_USER: skishop
-      POSTGRES_PASSWORD: skishop_password
+      POSTGRES_DB: ${POSTGRES_DB:-skishop}
+      POSTGRES_USER: ${POSTGRES_USER:-skishop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -27,10 +27,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://db:5432/skishop
-      DB_USERNAME: skishop
-      DB_PASSWORD: skishop_password
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-skishop}
+      DB_USERNAME: ${POSTGRES_USER:-skishop}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
       MAIL_USERNAME: ""

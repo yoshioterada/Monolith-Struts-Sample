@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -73,8 +74,8 @@ import java.util.UUID;
  * @see OrderService
  * @see PaymentService
  *
- * <p><strong>TODO:</strong> 依存が 12 個と多い（Orchestrator パターンとして現時点は許容）。
- * 将来的に金額計算ロジック（calculateOrderAmounts）を OrderAmountCalculator 等に分離を検討。</p>
+ * <p><strong>Note:</strong> 12 dependencies is at the limit for an orchestrator service.
+ * OrderAmountCalculator extraction is tracked as a separate refactoring initiative.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -372,8 +373,17 @@ public class CheckoutService {
     }
 
     private List<OrderItem> buildOrderItems(String orderId, List<CartItem> items) {
+        // Batch-load all products in a single query (C-1 N+1 fix)
+        List<String> productIds = items.stream()
+                .map(CartItem::getProductId)
+                .toList();
+        Map<String, Product> productMap = productService.findAllByIds(productIds);
+
         return items.stream().map(cartItem -> {
-            Product product = productService.findById(cartItem.getProductId());
+            Product product = productMap.get(cartItem.getProductId());
+            if (product == null) {
+                throw new ResourceNotFoundException("Product", cartItem.getProductId());
+            }
             var item = new OrderItem();
             item.setId(UUID.randomUUID().toString());
             item.setProductId(cartItem.getProductId());

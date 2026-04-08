@@ -86,7 +86,7 @@ public class PointService {
         var account = ensureAccount(userId);
         account.setBalance(account.getBalance() + points);
         account.setLifetimeEarned(account.getLifetimeEarned() + points);
-        pointAccountRepository.save(account);
+        pointAccountRepository.saveAndFlush(account);
 
         var transaction = buildTransaction(userId, AppConstants.POINT_TX_EARN, points, referenceId, "Order points");
         transaction.setExpiresAt(LocalDateTime.now().plusDays(365));
@@ -120,7 +120,7 @@ public class PointService {
         }
         account.setBalance(account.getBalance() - points);
         account.setLifetimeRedeemed(account.getLifetimeRedeemed() + points);
-        pointAccountRepository.save(account);
+        pointAccountRepository.saveAndFlush(account);
 
         var transaction = buildTransaction(userId, AppConstants.POINT_TX_REDEEM, -points, referenceId, "Redeem points");
         pointTransactionRepository.save(transaction);

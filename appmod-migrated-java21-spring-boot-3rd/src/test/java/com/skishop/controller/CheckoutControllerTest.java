@@ -62,15 +62,22 @@ class CheckoutControllerTest {
     }
 
     @Test
-    @DisplayName("バリデーションエラーがある場合、チェックアウト画面にリダイレクトする")
+    @DisplayName("バリデーションエラーがある場合、チェックアウト画面を再表示する")
     @WithSkiShopUser(userId = "user-id-1")
     void should_redirectToCheckout_when_validationErrors() throws Exception {
+        // Arrange: mock prepareCheckoutSummary for re-rendering
+        Cart cart = new Cart();
+        cart.setId("cart-1");
+        var summary = new CheckoutSummary(cart, List.of(),
+                BigDecimal.valueOf(5000), BigDecimal.valueOf(500), BigDecimal.valueOf(500));
+        when(checkoutService.prepareCheckoutSummary(anyString(), anyString())).thenReturn(summary);
+
         // Act & Assert
         mockMvc.perform(post("/checkout")
                         .param("paymentMethod", "")   // @NotBlank: 空はエラー
                         .param("usePoints", "0"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/checkout*"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("checkout/index"));
     }
 
     @Test

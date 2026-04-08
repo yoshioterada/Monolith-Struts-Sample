@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 在庫管理サービス。
@@ -62,16 +64,22 @@ public class InventoryService {
         if (items == null || items.isEmpty()) {
             return;
         }
+        List<String> productIds = items.stream().map(CartItem::getProductId).toList();
+        Map<String, Inventory> inventoryMap = inventoryRepository.findByProductIdIn(productIds)
+                .stream().collect(Collectors.toMap(Inventory::getProductId, inv -> inv));
+
         for (CartItem item : items) {
-            var inventory = inventoryRepository.findByProductId(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Inventory", item.getProductId()));
+            var inventory = inventoryMap.get(item.getProductId());
+            if (inventory == null) {
+                throw new ResourceNotFoundException("Inventory", item.getProductId());
+            }
             int available = inventory.getQuantity() - inventory.getReservedQuantity();
             if (available < item.getQuantity()) {
                 throw new BusinessException("Insufficient stock for product: " + item.getProductId(),
                         "redirect:/cart", "error.stock.insufficient");
             }
             inventory.setReservedQuantity(inventory.getReservedQuantity() + item.getQuantity());
-            inventoryRepository.save(inventory);
+            inventoryRepository.saveAndFlush(inventory);
         }
     }
 
@@ -91,12 +99,17 @@ public class InventoryService {
         if (items == null || items.isEmpty()) {
             return;
         }
+        List<String> productIds = items.stream().map(CartItem::getProductId).toList();
+        Map<String, Inventory> inventoryMap = inventoryRepository.findByProductIdIn(productIds)
+                .stream().collect(Collectors.toMap(Inventory::getProductId, inv -> inv));
+
         for (CartItem item : items) {
-            inventoryRepository.findByProductId(item.getProductId()).ifPresent(inventory -> {
+            var inventory = inventoryMap.get(item.getProductId());
+            if (inventory != null) {
                 int newReserved = inventory.getReservedQuantity() - item.getQuantity();
                 inventory.setReservedQuantity(Math.max(newReserved, 0));
-                inventoryRepository.save(inventory);
-            });
+                inventoryRepository.saveAndFlush(inventory);
+            }
         }
     }
 
@@ -114,12 +127,18 @@ public class InventoryService {
         if (items == null || items.isEmpty()) {
             return;
         }
+        List<String> productIds = items.stream().map(CartItem::getProductId).toList();
+        Map<String, Inventory> inventoryMap = inventoryRepository.findByProductIdIn(productIds)
+                .stream().collect(Collectors.toMap(Inventory::getProductId, inv -> inv));
+
         for (CartItem item : items) {
-            var inventory = inventoryRepository.findByProductId(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Inventory", item.getProductId()));
+            var inventory = inventoryMap.get(item.getProductId());
+            if (inventory == null) {
+                throw new ResourceNotFoundException("Inventory", item.getProductId());
+            }
             inventory.setQuantity(inventory.getQuantity() - item.getQuantity());
             inventory.setReservedQuantity(Math.max(inventory.getReservedQuantity() - item.getQuantity(), 0));
-            inventoryRepository.save(inventory);
+            inventoryRepository.saveAndFlush(inventory);
         }
     }
 

@@ -227,4 +227,15 @@ public class UserService {
         token.setUsedAt(LocalDateTime.now());
         passwordResetTokenRepository.save(token);
     }
+
+    /**
+     * 指定されたメールアドレスのユーザーが存在するかを確認する。
+     *
+     * @param email 確認対象のメールアドレス
+     * @return ユーザーが存在する場合 {@code true}
+     */
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }

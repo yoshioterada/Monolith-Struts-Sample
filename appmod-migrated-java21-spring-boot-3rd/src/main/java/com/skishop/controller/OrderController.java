@@ -7,6 +7,8 @@ import com.skishop.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.skishop.security.SkiShopUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.List;
 
 /**
  * 注文関連の HTTP リクエストを処理するコントローラー。
@@ -53,8 +55,13 @@ public class OrderController {
      * @return {@code "orders/list"} 注文一覧画面のテンプレート名
      */
     @GetMapping
-    public String list(@AuthenticationPrincipal SkiShopUserDetails userDetails, Model model) {
-        List<Order> orders = orderService.listByUserId(userDetails.getUserId());
+    public String list(@AuthenticationPrincipal SkiShopUserDetails userDetails,
+                       @RequestParam(defaultValue = "1") int page,
+                       @RequestParam(defaultValue = "20") int size,
+                       Model model) {
+        PageRequest pageable = PageRequest.of(
+                Math.max(page - 1, 0), Math.min(Math.max(size, 1), 100));
+        Page<Order> orders = orderService.listByUserId(userDetails.getUserId(), pageable);
         model.addAttribute("orders", orders);
         return "orders/list";
     }
@@ -77,9 +84,9 @@ public class OrderController {
                           @AuthenticationPrincipal SkiShopUserDetails userDetails,
                           Model model) {
         Order order = orderService.findByIdAndUserId(id, userDetails.getUserId());
-        List<OrderItem> items = orderService.listItems(id);
+        // Use items from the @EntityGraph-loaded order instead of a separate query
         model.addAttribute("order", order);
-        model.addAttribute("items", items);
+        model.addAttribute("items", order.getItems());
         return "orders/detail";
     }
 

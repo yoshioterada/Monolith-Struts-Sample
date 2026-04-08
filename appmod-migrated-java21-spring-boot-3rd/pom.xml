@@ -23,6 +23,7 @@
         <springdoc-openapi.version>2.3.0</springdoc-openapi.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <thymeleaf-layout-dialect.version>3.3.0</thymeleaf-layout-dialect.version>
+        <shedlock.version>5.10.0</shedlock.version>
         <!-- flyway-database-postgresql はFlyway 10.x から分離。Spring Boot 3.2 (Flyway 9.x) では flyway-core に内包 -->
     </properties>
 
@@ -102,6 +103,18 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
             <version>${logstash-logback-encoder.version}</version>
+        </dependency>
+
+        <!-- ShedLock (BOM 外: バージョン明示 — マルチインスタンス @Scheduled 排他制御) -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
         </dependency>
 
         <!-- Lombok (provided) -->

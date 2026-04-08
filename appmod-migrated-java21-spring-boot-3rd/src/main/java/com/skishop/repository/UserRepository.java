@@ -50,4 +50,14 @@ public interface UserRepository extends JpaRepository<User, String> {
      * @return 該当ステータスのユーザーリスト。存在しない場合は空リスト
      */
     List<User> findByStatus(String status);
+
+    /**
+     * 指定されたメールアドレスのユーザーが存在するかを確認する。
+     *
+     * <p>ユーザー登録時のメールアドレス重複チェックに使用される。</p>
+     *
+     * @param email 検索対象のメールアドレス（null 不可）
+     * @return ユーザーが存在する場合 {@code true}
+     */
+    boolean existsByEmail(String email);
 }

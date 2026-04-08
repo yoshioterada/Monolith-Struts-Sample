@@ -173,7 +173,7 @@ public class CouponService {
             return;
         }
         coupon.setUsedCount(coupon.getUsedCount() + 1);
-        couponRepository.save(coupon);
+        couponRepository.saveAndFlush(coupon);
 
         var usage = new CouponUsage();
         usage.setId(UUID.randomUUID().toString());

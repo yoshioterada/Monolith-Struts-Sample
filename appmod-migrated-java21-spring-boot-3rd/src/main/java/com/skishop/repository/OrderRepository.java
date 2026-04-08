@@ -1,6 +1,8 @@
 package com.skishop.repository;
 
 import com.skishop.model.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -43,6 +45,15 @@ public interface OrderRepository extends JpaRepository<Order, String> {
      * @return 該当ユーザーの注文リスト。注文がない場合は空リスト
      */
     List<Order> findByUserIdOrderByCreatedAtDesc(String userId);
+
+    /**
+     * 指定されたユーザー ID に紐づく注文をページネーション付きで検索する。
+     *
+     * @param userId   検索対象のユーザー ID（null 不可）
+     * @param pageable ページネーション情報
+     * @return 該当ユーザーの注文ページ
+     */
+    Page<Order> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 
     /**
      * 指定された注文番号で注文を検索する。

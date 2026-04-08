@@ -135,7 +135,7 @@ class PaymentServiceTest {
         var payment = new Payment();
         payment.setId("pay-1");
         payment.setStatus("AUTHORIZED");
-        when(paymentRepository.findByOrderId("order-1")).thenReturn(List.of(payment));
+        when(paymentRepository.findFirstByOrderIdOrderByCreatedAtDesc("order-1")).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
@@ -154,7 +154,7 @@ class PaymentServiceTest {
         var payment = new Payment();
         payment.setId("pay-2");
         payment.setStatus("AUTHORIZED");
-        when(paymentRepository.findByOrderId("order-2")).thenReturn(List.of(payment));
+        when(paymentRepository.findFirstByOrderIdOrderByCreatedAtDesc("order-2")).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
@@ -170,7 +170,7 @@ class PaymentServiceTest {
     @DisplayName("支払いが存在しない注文を無効化しても例外が発生しない")
     void should_doNothing_when_voidPaymentWithNoPayment() {
         // Arrange
-        when(paymentRepository.findByOrderId("order-3")).thenReturn(List.of());
+        when(paymentRepository.findFirstByOrderIdOrderByCreatedAtDesc("order-3")).thenReturn(Optional.empty());
 
         // Act
         paymentService.voidPayment("order-3");

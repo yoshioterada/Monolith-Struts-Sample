@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 商品管理サービス。
@@ -131,6 +133,21 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<Product> findByStatus(String status) {
         return productRepository.findByStatus(status);
+    }
+
+    /**
+     * 複数商品 ID で商品を一括取得する。
+     *
+     * @param productIds 商品 ID のリスト
+     * @return 商品 ID をキーとする商品マップ
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Product> findAllByIds(List<String> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return Map.of();
+        }
+        return productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, product -> product));
     }
 
     /**

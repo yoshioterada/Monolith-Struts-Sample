@@ -15,6 +15,7 @@
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         </appender>
+        <logger name="com.skishop" level="INFO"/>
         <root level="WARN">
             <appender-ref ref="JSON"/>
         </root>

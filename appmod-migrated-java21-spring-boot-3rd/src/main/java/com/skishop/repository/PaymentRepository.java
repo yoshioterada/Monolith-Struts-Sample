@@ -4,6 +4,7 @@ import com.skishop.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * {@link Payment} エンティティのデータアクセスを提供する Spring Data JPA リポジトリ。
@@ -33,4 +34,12 @@ public interface PaymentRepository extends JpaRepository<Payment, String> {
      * @return 該当注文の支払い情報リスト。存在しない場合は空リスト
      */
     List<Payment> findByOrderId(String orderId);
+
+    /**
+     * 指定注文 ID に紐づく最新の支払い情報を取得する。
+     *
+     * @param orderId 注文 ID
+     * @return 最新の支払い情報
+     */
+    Optional<Payment> findFirstByOrderIdOrderByCreatedAtDesc(String orderId);
 }

@@ -23,6 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+
 @WebMvcTest(OrderController.class)
 @Import(TestSecurityConfig.class)
 class OrderControllerTest {
@@ -40,7 +43,7 @@ class OrderControllerTest {
     @DisplayName("注文一覧を表示する")
     @WithSkiShopUser(userId = "user-id-1")
     void should_displayOrderList_when_authenticated() throws Exception {
-        when(orderService.listByUserId(anyString())).thenReturn(List.of());
+        when(orderService.listByUserId(anyString(), any())).thenReturn(new PageImpl<>(List.of()));
 
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
@@ -68,7 +71,7 @@ class OrderControllerTest {
     @DisplayName("未認証ユーザーも一覧にアクセスできる (TestSecurityConfig: permitAll)")
     @WithSkiShopUser(userId = "user-id-anon")
     void should_accessOrderList_when_unauthenticated() throws Exception {
-        when(orderService.listByUserId(any())).thenReturn(List.of());
+        when(orderService.listByUserId(any(), any())).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk());
     }

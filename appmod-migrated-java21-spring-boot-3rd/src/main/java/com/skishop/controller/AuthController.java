@@ -99,6 +99,11 @@ public class AuthController {
             result.rejectValue("passwordConfirm", "validation.passwordConfirm.mismatch");
             return "auth/register";
         }
+        if (userService.existsByEmail(request.email())) {
+            result.rejectValue("email", "validation.email.unavailable",
+                    "This email address is not available");
+            return "auth/register";
+        }
         userService.registerNewUser(request.email(), request.username(), request.password());
         redirectAttributes.addFlashAttribute("successMessage", "registration.success");
         return "redirect:/auth/login";

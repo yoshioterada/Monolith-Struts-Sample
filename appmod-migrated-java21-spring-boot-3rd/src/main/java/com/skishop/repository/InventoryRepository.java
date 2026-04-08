@@ -3,6 +3,7 @@ package com.skishop.repository;
 import com.skishop.model.Inventory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -34,4 +35,12 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
      * @return 該当商品の在庫情報を含む {@link Optional}。存在しない場合は {@link Optional#empty()}
      */
     Optional<Inventory> findByProductId(String productId);
+
+    /**
+     * 複数商品 ID に紐づく在庫情報を一括検索する。
+     *
+     * @param productIds 検索対象の商品 ID リスト
+     * @return 該当商品の在庫情報リスト
+     */
+    List<Inventory> findByProductIdIn(List<String> productIds);
 }

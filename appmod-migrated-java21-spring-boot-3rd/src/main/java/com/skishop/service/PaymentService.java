@@ -115,8 +115,7 @@ public class PaymentService {
     }
 
     private void updateStatusByOrderId(String orderId, String status) {
-        paymentRepository.findByOrderId(orderId).stream()
-                .findFirst()
+        paymentRepository.findFirstByOrderIdOrderByCreatedAtDesc(orderId)
                 .ifPresent(payment -> {
                     payment.setStatus(status);
                     paymentRepository.save(payment);
