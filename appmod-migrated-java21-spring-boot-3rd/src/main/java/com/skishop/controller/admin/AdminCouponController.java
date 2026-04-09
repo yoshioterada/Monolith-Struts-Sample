@@ -61,6 +61,23 @@ public class AdminCouponController {
     }
 
     /**
+     * クーポン新規作成画面を表示する。
+     *
+     * <p>{@code GET /admin/coupons/new} — 空のクーポン作成フォームを表示する。</p>
+     *
+     * <p>認可: {@code ADMIN} ロールのみ</p>
+     *
+     * @param model ビューに渡すモデル（空の {@code couponRequest} を格納）
+     * @return {@code "admin/coupons/form"} クーポン作成・編集画面のテンプレート名
+     */
+    @GetMapping("/new")
+    public String newCouponForm(Model model) {
+        model.addAttribute("couponRequest",
+                new AdminCouponRequest(null, null, "", "", null, "", null, null, 0, true, null));
+        return "admin/coupons/form";
+    }
+
+    /**
      * クーポンを新規作成する。
      *
      * <p>{@code POST /admin/coupons} — バリデーション済みのクーポン情報を受け取り、新規クーポンを作成する。

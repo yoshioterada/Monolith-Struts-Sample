@@ -30,7 +30,7 @@
           <td th:text="${coupon.discountValue}"></td>
           <td th:text="${coupon.usageLimit}"></td>
           <td th:text="${coupon.active}"></td>
-          <td><a th:href="@{/admin/coupons/{code}/edit(code=${coupon.code})}">編集</a></td>
+          <td><a th:href="@{/admin/coupons/{id}(id=${coupon.id})}">編集</a></td>
         </tr>
       </tbody>
     </table>

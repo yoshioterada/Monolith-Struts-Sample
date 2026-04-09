@@ -30,7 +30,7 @@
           <td th:text="${method.fee}"></td>
           <td th:text="${method.active}"></td>
           <td th:text="${method.sortOrder}"></td>
-          <td><a th:href="@{/admin/shipping-methods/{id}/edit(id=${method.id})}">編集</a></td>
+          <td><a th:href="@{/admin/shipping-methods/{id}(id=${method.id})}">編集</a></td>
         </tr>
       </tbody>
     </table>

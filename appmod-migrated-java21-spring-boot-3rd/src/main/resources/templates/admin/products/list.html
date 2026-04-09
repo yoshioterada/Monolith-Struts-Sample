@@ -29,7 +29,7 @@
           <td th:text="${product.name}"></td>
           <td th:text="${product.brand}"></td>
           <td th:text="${product.status}"></td>
-          <td><a th:href="@{/admin/products/{id}/edit(id=${product.id})}">編集</a></td>
+          <td><a th:href="@{/admin/products/{id}(id=${product.id})}">編集</a></td>
           <td>
             <form th:action="@{/admin/products/{id}(id=${product.id})}" method="post">
               <input type="hidden" name="_method" value="DELETE">

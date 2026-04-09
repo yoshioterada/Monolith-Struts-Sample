@@ -10,7 +10,9 @@
 <div layout:fragment="content">
   <h2 class="page-title">配送方法編集</h2>
   <div class="card">
-    <form th:action="@{/admin/shipping-methods}" method="post" th:object="${adminShippingMethodRequest}">
+    <form th:action="${shippingMethodRequest.id != null} ? @{/admin/shipping-methods/{id}(id=${shippingMethodRequest.id})} : @{/admin/shipping-methods}"
+          th:method="${shippingMethodRequest.id != null ? 'put' : 'post'}"
+          th:object="${shippingMethodRequest}">
       <input type="hidden" th:field="*{id}">
       <table>
         <tr>

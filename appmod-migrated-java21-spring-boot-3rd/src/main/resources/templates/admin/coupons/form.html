@@ -10,7 +10,9 @@
 <div layout:fragment="content">
   <h2 class="page-title">クーポン編集</h2>
   <div class="card">
-    <form th:action="@{/admin/coupons}" method="post" th:object="${adminCouponRequest}">
+    <form th:action="${couponRequest.id != null} ? @{/admin/coupons/{id}(id=${couponRequest.id})} : @{/admin/coupons}"
+          th:method="${couponRequest.id != null ? 'put' : 'post'}"
+          th:object="${couponRequest}">
       <input type="hidden" th:field="*{id}">
       <table>
         <tr>
